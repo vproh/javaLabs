@@ -489,6 +489,52 @@ public class Group {
 		return res + "\r\nGroup name: " + groupName + "; Group number: " + groupNumber
 				+ "; Contract students = " + this.getpayQuantity() + "; Der. students = " + this.getshipQuantity() + "; curator: " + curatorName + "\n";
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((curatorName == null) ? 0 : curatorName.hashCode());
+		result = prime * result + ((groupName == null) ? 0 : groupName.hashCode());
+		result = prime * result + groupNumber;
+		result = prime * result + payQuantity;
+		result = prime * result + shipQuantity;
+		result = prime * result + ((students == null) ? 0 : students.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Group other = (Group) obj;
+		if (curatorName == null) {
+			if (other.curatorName != null)
+				return false;
+		} else if (!curatorName.equals(other.curatorName))
+			return false;
+		if (groupName == null) {
+			if (other.groupName != null)
+				return false;
+		} else if (!groupName.equals(other.groupName))
+			return false;
+		if (groupNumber != other.groupNumber)
+			return false;
+		if (payQuantity != other.payQuantity)
+			return false;
+		if (shipQuantity != other.shipQuantity)
+			return false;
+		if (students == null) {
+			if (other.students != null)
+				return false;
+		} else if (!students.equals(other.students))
+			return false;
+		return true;
+	}
 }
 
 

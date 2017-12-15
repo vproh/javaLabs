@@ -185,5 +185,78 @@ public class Student {
 		
 		return res;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Float.floatToIntBits(averageBl);
+		result = prime * result + ((birthDay == null) ? 0 : birthDay.hashCode());
+		result = prime * result + ((edu == null) ? 0 : edu.hashCode());
+		result = prime * result + ((email == null) ? 0 : email.hashCode());
+		result = prime * result + ((faculty == null) ? 0 : faculty.hashCode());
+		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
+		result = prime * result + (leader ? 1231 : 1237);
+		result = prime * result + missings;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((phoneNumber == null) ? 0 : phoneNumber.hashCode());
+		result = prime * result + (ship ? 1231 : 1237);
+		return result;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Student other = (Student) obj;
+		if (Float.floatToIntBits(averageBl) != Float.floatToIntBits(other.averageBl))
+			return false;
+		if (birthDay == null) {
+			if (other.birthDay != null)
+				return false;
+		} else if (!birthDay.equals(other.birthDay))
+			return false;
+		if (edu == null) {
+			if (other.edu != null)
+				return false;
+		} else if (!edu.equals(other.edu))
+			return false;
+		if (email == null) {
+			if (other.email != null)
+				return false;
+		} else if (!email.equals(other.email))
+			return false;
+		if (faculty == null) {
+			if (other.faculty != null)
+				return false;
+		} else if (!faculty.equals(other.faculty))
+			return false;
+		if (lastName == null) {
+			if (other.lastName != null)
+				return false;
+		} else if (!lastName.equals(other.lastName))
+			return false;
+		if (leader != other.leader)
+			return false;
+		if (missings != other.missings)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (phoneNumber == null) {
+			if (other.phoneNumber != null)
+				return false;
+		} else if (!phoneNumber.equals(other.phoneNumber))
+			return false;
+		if (ship != other.ship)
+			return false;
+		return true;
+	}
 }
 	

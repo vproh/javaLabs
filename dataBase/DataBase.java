@@ -64,7 +64,7 @@ public class DataBase {
 		DataBase.password = password;
 	}
 	
-	public static List<String> getColumns (String nameTable) throws SQLException {
+	protected static List<String> getColumns (String nameTable) throws SQLException {
 		List<String> columns = null;
 		ResultSet res = null;
 		PreparedStatement stmt = null;
@@ -85,7 +85,7 @@ public class DataBase {
 		}
 	}
 	
-	private boolean IsSbjInBD(String sbj) throws SQLException {
+	protected boolean IsSbjInDB(String sbj) throws SQLException {
 		List<String> columns = null;
 		try {
 			columns = getColumns("marks");
@@ -146,7 +146,7 @@ public class DataBase {
 		}
 	}
 	
-	private void addToTableSubject(String nameTable, String sbj) throws SQLException {
+	protected void addToTableSubject(String nameTable, String sbj) throws SQLException {
 		String request = null;
 		PreparedStatement stmt = null;
 		
@@ -161,7 +161,7 @@ public class DataBase {
 		}
 	}
 	
-	private void fieldsMoveUp(int start, int end) throws SQLException { // works ?
+	protected void fieldsMoveUp(int start, int end) throws SQLException { // works ?
 		String request = null;
 		PreparedStatement stmt = null;
 		
@@ -194,7 +194,7 @@ public class DataBase {
 		}
 	}
 	
-	private boolean createStudentsTable() throws SQLException {
+	protected boolean createStudentsTable() throws SQLException {
 		String request = null;
 		Statement stmt = null;
 		
@@ -213,7 +213,7 @@ public class DataBase {
 		}
 	}
 	
-	private boolean createStudentGroupTable() throws SQLException {
+	protected boolean createStudentGroupTable() throws SQLException {
 		String request = null;
 		Statement stmt = null;
 		
@@ -230,7 +230,7 @@ public class DataBase {
 		}
 	}
 	
-	private boolean createMarksTable(Student student) throws SQLException {
+	protected boolean createMarksTable(Student student) throws SQLException {
 		String request = null;
 		String[] sbj = null;
 		Statement stmt = null;
@@ -444,7 +444,7 @@ public class DataBase {
 			marks = Group.getMarks(student);
 			
 			for(int i = 0; i < sbj.length; ++ i) {
-				if(!IsSbjInBD(sbj[i]))
+				if(!IsSbjInDB(sbj[i]))
 					addToTableSubject("marks", sbj[i]);
 			}
 			
@@ -535,11 +535,27 @@ public class DataBase {
 		}
 	}
 	
-	public boolean deleteBD(String nameBD) throws SQLException {
-		ResultSet tables = null;
-		Statement stmt = null;
+	public boolean deleteDB(String nameDB) throws SQLException {
 		PreparedStatement prStmt = null;
 
+		try {
+			/*delete DB */
+			prStmt = con.prepareStatement(String.format("drop database %s", nameDB));
+			prStmt.executeUpdate();
+			
+			return true;
+		}
+		finally {
+			if(prStmt != null)
+				prStmt.close();
+		}
+	}
+	
+	public boolean clearDB() throws SQLException {
+		Statement stmt = null;
+		PreparedStatement prStmt = null;
+		ResultSet tables = null;
+		
 		try {
 			stmt = con.createStatement();
 			tables = stmt.executeQuery("show tables;");
@@ -549,30 +565,25 @@ public class DataBase {
 				prStmt.executeUpdate();
 				prStmt.close();
 			}
-			/*delete BD */
-			prStmt = con.prepareStatement(String.format("drop database %s", nameBD));
-			prStmt.executeUpdate();
 			
 			return true;
 		}
 		finally {
 			if(tables != null)
 				tables.close();
-			if(stmt != null)
-				stmt.close();
 			if(prStmt != null)
 				prStmt.close();
 		}
 	}
 	
-	public void newMark(int groupNum, int studentId, String sbj, int mark) throws SQLException {
+	public boolean newMark(int groupNum, int studentId, String sbj, int mark) throws SQLException {
 		String request = null;
 		PreparedStatement prStmt = null;
 		
 		try {
 			if(!isStudentIdCorrect(studentId))
 				throw new IllegalArgumentException("This stedentId does not exists !");
-			if(!IsSbjInBD(sbj))
+			if(!IsSbjInDB(sbj))
 				throw new IllegalArgumentException("This student has not current course !!!");
 			if(!isStudentGroupCorrect(groupNum, studentId))
 				throw new IllegalArgumentException("This student does not belong this group !!!");
@@ -582,6 +593,8 @@ public class DataBase {
 			prStmt.setInt(1, mark);
 			prStmt.setInt(2, studentId);
 			prStmt.executeUpdate();
+			
+			return true;
 		}
 		finally {
 			if(prStmt != null)
@@ -589,7 +602,7 @@ public class DataBase {
 		}
 	}
 	
-	public void newMarks(int groupNum, int studentId, String[] sbj, Integer[] marks) throws SQLException {
+	public boolean newMarks(int groupNum, int studentId, String[] sbj, Integer[] marks) throws SQLException {
 		String request = null;
 		PreparedStatement prStmt = null;
 		
@@ -600,7 +613,7 @@ public class DataBase {
 				throw new IllegalArgumentException("This student does not belong this group !!!");
 			request = "update marks set `";
 			for(int i = 0; i < sbj.length - 1; ++ i) {
-				if(!IsSbjInBD(sbj[i]))
+				if(!IsSbjInDB(sbj[i]))
 					throw new IllegalArgumentException("One or more subjects does not exists in database !!!");
 				request += sbj[i] + "`=?, `";
 			}
@@ -611,7 +624,8 @@ public class DataBase {
 			
 			prStmt.setInt(sbj.length + 1, studentId);
 			prStmt.executeUpdate();
-			//System.out.println("Request = " + prStmt.toString());
+			
+			return true;
 		}
 		finally {
 			if(prStmt != null)
