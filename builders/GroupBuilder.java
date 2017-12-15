@@ -1,6 +1,7 @@
 package builders;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,7 +14,7 @@ import models.Student;
 @XmlRootElement (name = "Group")
 public class GroupBuilder {
 	String curatorName, groupName;
-	ArrayList<Student> students = new ArrayList<Student>();
+	List<Student> students = new ArrayList<Student>();
 	int groupNumber;
 	
 	public GroupBuilder() {
@@ -39,11 +40,11 @@ public class GroupBuilder {
 	}
 	
 	@XmlElement(name = "Students")
-	public ArrayList<Student> getStudents() {
+	public List<Student> getStudents() {
 		return students;
 	}
 	
-	public GroupBuilder setStudents(ArrayList<Student> s) {
+	public GroupBuilder setStudents(List<Student> s) {
 		this.students = s;
 		
 		return this;
@@ -89,7 +90,7 @@ public class GroupBuilder {
 		ob.setCuratorName(this.curatorName);
 		ob.setGroupNumber(this.groupNumber);
 		ob.setStudents(this.students);
-		ob.countDandK();
+		ob.countShipStudents();
 		ob.averageBal();
 		
 		return ob;

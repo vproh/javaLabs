@@ -1,13 +1,18 @@
 package models;
 
-import java.util.Calendar;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+@XmlType(propOrder = {"name", "lastName", "birthDay", "faculty", "missings", "leader", "ship", "edu", "averageBl", "phoneNumber", "email"})
 public class Student {
-	private String name, lastName, faculty, birthDay, email, phoneNumber;
-	boolean starosta, d; // d - Can student become a ship ?
-	int n; // missings
+	private String name, lastName, faculty, email, phoneNumber;
+	boolean leader, ship; 
+	LocalDate birthDay;
+	int missings;
 	float averageBl;
 	Map<String, Integer> edu = new HashMap<String, Integer>();
 	
@@ -18,23 +23,23 @@ public class Student {
 		birthDay = null;
 		email = null;
 		phoneNumber = null;
-		starosta = false;
-		d = false;
-		n = 0;
+		leader = false;
+		ship = false;
+		missings = 0;
 		edu = null;
 		averageBl = 0f;
 	}
 	
-	public Student(String name, String l, String b, String p, String e, String f, boolean i, boolean d, int n, float avB, String[] obj, Integer[] bl) {
+	public Student(String name, String l, LocalDate bithDay, String p, String e, String f, boolean i, boolean d, int n, float avB, String[] obj, Integer[] bl) {
 		this.name = name;
 		this.lastName = l;
-		this.birthDay = b;
+		this.birthDay = bithDay;
 		this.phoneNumber = p;
 		this.email = e;
 		this.faculty = f;
-		this.d = d;
-		this.starosta = i;
-		this.n = n;
+		this.ship = d;
+		this.leader = i;
+		this.missings = n;
 		this.averageBl = avB;
 		for(int j = 0; j < obj.length; ++ j) {
 			this.edu.put(obj[j], bl[j]);
@@ -60,12 +65,15 @@ public class Student {
 	public void setFaculty(String faculty) {
 		this.faculty = faculty;
 	}
-	public String getBirthDay() {
+	
+	@XmlJavaTypeAdapter(value = LocalDateAdapter.class)
+	public LocalDate getBirthDay() {
 		return birthDay;
 	}
-	public void setBirthDay(String birthDay) {
+	public void setBirthDay(LocalDate birthDay) {
 		this.birthDay = birthDay;
 	}
+	
 	public String getEmail() {
 		return email;
 	}
@@ -79,20 +87,20 @@ public class Student {
 		this.phoneNumber = phoneNumber;
 	}
 	
-	public void setN(int n) {
-		this.n = n;
+	public void setMissings(int n) {
+		this.missings = n;
 	}
 	
-	public int getN() {
-		return this.n;
+	public int getMissings() {
+		return this.missings;
 	}
 	
-	public boolean isStarosta () {
-		return this.starosta;
+	public boolean isLeader () {
+		return this.leader;
 	}
 	
-	public void setStarosta (boolean st) {
-		this.starosta = st;
+	public void setLeader (boolean st) {
+		this.leader = st;
 	}
 	
 	public void setEdu(Map<String, Integer> e) {
@@ -111,64 +119,58 @@ public class Student {
 		return this.averageBl;
 	}
 	
-	public void setD(boolean d) {
-		this.d = d;
+	public void setShip(boolean d) {
+		this.ship = d;
 		
 		return;
 	}
 	
-	public boolean isD() {
-		return this.d;
+	public boolean isShip() {
+		return this.ship;
 	}
 	
-	public String years() {
+	public int years() {
 		int old = 0;
-		Calendar c = Calendar.getInstance();
-		int yearNow = c.get(Calendar.YEAR);
-		int monthNow = c.get(Calendar.MONTH) + 1;
-		int dayNow = c.get(Calendar.DAY_OF_MONTH);
+		LocalDate today = LocalDate.now();
+		int monthOfBorn = birthDay.getMonthValue();
+		int dayOfBorn = birthDay.getDayOfMonth();
 		
-		char[] dateBirth = this.birthDay.toCharArray();
+		old = today.compareTo(birthDay);
+		System.out.println("Old = " + old);
 		
-		int y = (dateBirth[6] - 48) * 1000 + ((int)dateBirth[7] - 48) * 100 + ((int)dateBirth[8] - 48) * 10 + (int)dateBirth[9] - 48;
-		int m = (dateBirth[3] - 48) * 10 + dateBirth[4] - 48;
-		int d = (dateBirth[0] - 48) * 10 + dateBirth[1] - 48;
-		old = yearNow - y;
-	
-		if((yearNow - old < y) ||(m > monthNow))
-			old --;
-		else if(m == monthNow && d <= dayNow)
-			old ++;
+		if(monthOfBorn > today.getMonthValue() || (monthOfBorn == today.getMonthValue() && dayOfBorn > today.getDayOfMonth()))
+			-- old;
 		
-		return old + " years old";
+		return old;
 	}
 	
-	protected boolean checkN(int n1) {
-		if(this.n >= n) {
+	protected boolean checkN(int n) {
+		if(this.missings >= n) {
 			return true;
 		}
 		
 		return false;
 	}
 	
-	protected boolean checkN() {
-		if(this.n >= 30) {
+	protected boolean checkMissings() {
+		if(this.missings >= 30) {
 			return true;
 		}
 		
 		return false;
 	}
 	
-	public void addN() {
-		this.n ++;
+	public void addMissings() {
+		this.missings ++;
+		
 	}
 	
-	public void addN(int n) {
+	public void addMissings(int n) {
 		if(n < 0 || n > 50)
-			throw new IllegalArgumentException("Enter correct n!(not negative and not more than 50)\n");
-		if(this.checkN())
-			throw new IllegalArgumentException("Can`t add N - this student reach max of N! Current value is: " + this.n + '\n');
-		this.n += n;
+			throw new IllegalArgumentException("Enter correct number of missings!(not negative and not more than 50)\n");
+		if(this.checkMissings())
+			throw new IllegalArgumentException("Can`t add N - this student reach max of missings! Current value is: " + this.missings + '\n');
+		this.missings += missings;
 		
 		return;
 	}
@@ -176,10 +178,10 @@ public class Student {
 	@Override
 	public String toString() {
 		String res = "\r\nName: " + name + ";\r\nLast name: " + lastName + ";\r\nDate of birthday: " + birthDay
-				+ ";\r\nFaculty: " + faculty  + ";\r\nPropusky: " + n  + ";\r\nStarosta: " + starosta + ";\r\nEducation succes: "
+				+ ";\r\nFaculty: " + faculty  + ";\r\nMissings: " + missings  + ";\r\nLeader: " + leader + ";\r\nEducation success: "
 				+ edu.toString() + ";\r\nAverage Bal = " + this.averageBl + ";\r\nPhone number: " + phoneNumber + ";\r\nE-mail: " + email + "\r\n";
-		if(this.checkN())
-			res += "This student reached maximum of N(propusky) !!!\n";
+		if(this.checkMissings())
+			res += "This student reached maximum number of missings !!!\r\n";
 		
 		return res;
 	}

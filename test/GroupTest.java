@@ -11,32 +11,41 @@ import org.testng.annotations.DataProvider;
 
 import static org.testng.Assert.assertEquals;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
+import java.util.List;
 
 class Global {
-	public String[] subjects1 = { "Matan", "Algebra", "Computer networks", "Java", "Python" };
-	public Integer[] baly1 = { 65, 66, 75, 85, 94 };
-		
-	public String[] subjects2 = {"Algebra", "Computer networks", "Java", "Python" };
-	public  Integer[] baly2 = {66, 82, 85, 94 };
-		
-	public String[] subjects3 = { "Matan", "Algebra", "Computer networks", "Java" };
-	public Integer[] baly3 = { 15, 66, 89, 53 };
 	
-	public Student student1 = new StudentBuilder("Vlad").setLastName("Zsfdgddf").setBirthDay("03.01.1999")
+	String[] subjects1 = { "Matan", "Algebra", "Computer networks", "Java", "Python" };
+	Integer[] baly1 = { 65, 66, 75, 85, 94 };
+	
+	String[] subjects2 = {"Algebra", "Computer networks", "Java", "Python" };
+	Integer[] baly2 = {66, 82, 85, 94 };
+	
+	String[] subjects3 = { "Matan", "Algebra", "Computer networks", "Java" };
+	Integer[] baly3 = { 15, 66, 89, 53 };
+	
+	String[] subjects4 = { "Matan", "Algebra", "Computer networks", "Java", "Python" };
+	Integer[] baly4 = { 100, 75, 66, 50, 91 };
+	
+	Student student1 = new StudentBuilder("Vlad").setLastName("Zsfdgddf").setBirthDay(LocalDate.of(1997, Month.DECEMBER, 11))
 			.setPhoneNumber("0975463187").setEmail("Proh@gmail.com")
-			.setFaculcy("Math-fac").setD(true).setEdu(subjects1,  baly1).build();
-	public Student student2 = new StudentBuilder("Rostik").setLastName("Rgfdgb").setBirthDay("21.02.1998")
+			.setFaculty("Math-fac").setShip(true).setEdu(subjects1,  baly1).build();
+	Student student2 = new StudentBuilder("Rostik").setLastName("Rgfdgb").setBirthDay(LocalDate.of(1997, Month.JULY, 22))
 			.setPhoneNumber("0975497111").setEmail("Khlan@gmail.com")
-			.setFaculcy("Math-fac").setN(11).setD(true).setEdu(subjects2, baly2).build();
-	public Student student3 = new StudentBuilder("Danka").setLastName("Zsdfa").setBirthDay("09.11.1997")
+			.setFaculty("Math-fac").setMissings(11).setShip(true).setEdu(subjects2, baly2).build();
+	Student student3 = new StudentBuilder("Danka").setLastName("Zsdfa").setBirthDay(LocalDate.of(1999, Month.AUGUST, 31))
 			.setPhoneNumber("0971131548").setEmail("Danka@gmail.com")
-			.setFaculcy("Math-fac").setN(7).setD(true).setEdu(subjects3, baly3).build();
+			.setFaculty("Math-fac").setMissings(7).setShip(true).setEdu(subjects3, baly3).build();
+	Student student4 = new StudentBuilder("Katrin").setLastName("Virstiuk").setBirthDay(LocalDate.of(1998, Month.MARCH, 3))
+			.setPhoneNumber("0978721375").setEmail("Katia@gmail.com")
+			.setFaculty("Math-fac").setShip(true).setLeader(true).setEdu(subjects4, baly4).build();
 	  
-	public ArrayList<Student> studArr = new ArrayList<Student>();
+	public List<Student> studArr = new ArrayList<Student>();
 	  
 	public void setAll() {
-		  student1.addN(5);
 	
 		  studArr.add(student1);
 		  studArr.add(student2);
@@ -47,7 +56,7 @@ class Global {
 
 public class GroupTest {
 	@Test(dataProvider = "sortByNProvider")
-	public void sortByNTest(ArrayList<Student> studArr, String cName, String gName, int gNumber, String res) {
+	public void sortByNTest(List<Student> studArr, String cName, String gName, int gNumber, String res) {
 		Group ob = new GroupBuilder(gName).setCuratorName(cName).setStudents(studArr).setGroupNumber(gNumber).build();
 		ob.sortByN();
 		assertEquals(ob.toString(), res);
@@ -57,46 +66,52 @@ public class GroupTest {
   	public Object[][] sortByNProvider() {
 	  Global ob = new Global();
 	  ob.setAll();
-	  String res = "\n" + 
-	  		"Name: Vlad;\n" + 
-	  		"Last name: Zsfdgddf;\n" + 
-	  		"Date of birthday: 03.01.1999;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 5; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=85, Algebra=66, Matan=65, Computer networks=75, Python=94}\n" + 
-	  		"Average Bal = 77.0\n" + 
-	  		"\n" + 
-	  		"Name: Danka;\n" + 
-	  		"Last name: Zsdfa;\n" + 
-	  		"Date of birthday: 09.11.1997;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 7; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=53, Algebra=66, Matan=15, Computer networks=89}\n" + 
-	  		"Average Bal = 55.75\n" + 
-	  		"\n" + 
-	  		"Name: Rostik;\n" + 
-	  		"Last name: Rgfdgb;\n" + 
-	  		"Date of birthday: 21.02.1998;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 11; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=85, Algebra=66, Computer networks=82, Python=94}\n" + 
-	  		"Average Bal = 81.75\n" + 
-	  		"\n" + 
-	  		"Group name: System-analysis; Group number: 307; Contract students = 0; Der. students = 3; Kurator: Malyk Igor Vladimirivich.\n";
+	  String res = "\r\n" + 
+	  		"Name: Vlad;\r\n" + 
+	  		"Last name: Zsfdgddf;\r\n" + 
+	  		"Date of birthday: 1997-12-11;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 0;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=85, Algebra=66, Matan=65, Computer networks=75, Python=94};\r\n" + 
+	  		"Average Bal = 77.0;\r\n" + 
+	  		"Phone number: 0975463187;\r\n" + 
+	  		"E-mail: Proh@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Name: Danka;\r\n" + 
+	  		"Last name: Zsdfa;\r\n" + 
+	  		"Date of birthday: 1999-08-31;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 7;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=53, Algebra=66, Matan=15, Computer networks=89};\r\n" + 
+	  		"Average Bal = 55.75;\r\n" + 
+	  		"Phone number: 0971131548;\r\n" + 
+	  		"E-mail: Danka@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Name: Rostik;\r\n" + 
+	  		"Last name: Rgfdgb;\r\n" + 
+	  		"Date of birthday: 1997-07-22;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 11;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=85, Algebra=66, Computer networks=82, Python=94};\r\n" + 
+	  		"Average Bal = 81.75;\r\n" + 
+	  		"Phone number: 0975497111;\r\n" + 
+	  		"E-mail: Khlan@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Group name: System-analysis; Group number: 307; Contract students = 0; Der. students = 3; curator: Malyk Igor Vladimirovich\n";
 	  
     return new Object[][] {
-      new Object[] { ob.studArr, "Malyk Igor Vladimirivich", "System-analysis", 307, res }
+      new Object[] { ob.studArr, "Malyk Igor Vladimirovich", "System-analysis", 307, res }
     };
   }
  
   @Test(dataProvider = "sortByLastNameProvider")
-  	public void sortByLastNameTest(ArrayList<Student> studArr, String cName, String gName, int gNumber, String res) {
+  	public void sortByLastNameTest(List<Student> studArr, String cName, String gName, int gNumber, String res) {
 	 Group ob = new GroupBuilder(gName).setCuratorName(cName).setStudents(studArr).setGroupNumber(gNumber).build();
 	 ob.sortByLastName();
 	 assertEquals(ob.toString(), res);
@@ -106,46 +121,52 @@ public class GroupTest {
   	public Object[][] sortByLastNameProvider() {
 	  Global ob = new Global();
 	  ob.setAll();
-	  String res = "\n" + 
-	  		"Name: Rostik;\n" + 
-	  		"Last name: Rgfdgb;\n" + 
-	  		"Date of birthday: 21.02.1998;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 11; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=85, Algebra=66, Computer networks=82, Python=94}\n" + 
-	  		"Average Bal = 81.75\n" + 
-	  		"\n" + 
-	  		"Name: Danka;\n" + 
-	  		"Last name: Zsdfa;\n" + 
-	  		"Date of birthday: 09.11.1997;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 7; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=53, Algebra=66, Matan=15, Computer networks=89}\n" + 
-	  		"Average Bal = 55.75\n" + 
-	  		"\n" + 
-	  		"Name: Vlad;\n" + 
-	  		"Last name: Zsfdgddf;\n" + 
-	  		"Date of birthday: 03.01.1999;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 5; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=85, Algebra=66, Matan=65, Computer networks=75, Python=94}\n" + 
-	  		"Average Bal = 77.0\n" + 
-	  		"\n" + 
-	  		"Group name: System-analysis; Group number: 307; Contract students = 0; Der. students = 3; Kurator: Malyk Igor Vladimirivich.\n";
+	  String res = "\r\n" + 
+	  		"Name: Rostik;\r\n" + 
+	  		"Last name: Rgfdgb;\r\n" + 
+	  		"Date of birthday: 1997-07-22;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 11;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=85, Algebra=66, Computer networks=82, Python=94};\r\n" + 
+	  		"Average Bal = 81.75;\r\n" + 
+	  		"Phone number: 0975497111;\r\n" + 
+	  		"E-mail: Khlan@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Name: Danka;\r\n" + 
+	  		"Last name: Zsdfa;\r\n" + 
+	  		"Date of birthday: 1999-08-31;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 7;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=53, Algebra=66, Matan=15, Computer networks=89};\r\n" + 
+	  		"Average Bal = 55.75;\r\n" + 
+	  		"Phone number: 0971131548;\r\n" + 
+	  		"E-mail: Danka@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Name: Vlad;\r\n" + 
+	  		"Last name: Zsfdgddf;\r\n" + 
+	  		"Date of birthday: 1997-12-11;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 0;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=85, Algebra=66, Matan=65, Computer networks=75, Python=94};\r\n" + 
+	  		"Average Bal = 77.0;\r\n" + 
+	  		"Phone number: 0975463187;\r\n" + 
+	  		"E-mail: Proh@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Group name: System-analysis; Group number: 307; Contract students = 0; Der. students = 3; curator: Malyk Igor Vladimirovich\n";
 	  		
 	  return new Object[][] {
-	      new Object[] { ob.studArr, "Malyk Igor Vladimirivich", "System-analysis", 307, res }
+	      new Object[] { ob.studArr, "Malyk Igor Vladimirovich", "System-analysis", 307, res }
 	    };
   }
 
   @Test(dataProvider = "sortByEduProvider")
-	public void sortByEduTest(ArrayList<Student> studArr, String cName, String gName, int gNumber, String res) {
+	public void sortByEduTest(List<Student> studArr, String cName, String gName, int gNumber, String res) {
 		Group ob = new GroupBuilder(gName).setCuratorName(cName).setStudents(studArr).setGroupNumber(gNumber).build();
 		ob.sortByEdu();
 		assertEquals(ob.toString(), res);
@@ -155,47 +176,52 @@ public class GroupTest {
   	public Object[][] sortByEduProvider() {
 	  Global ob = new Global();
 	  ob.setAll();
-	  String res = "\n" + 
-	  		"Name: Rostik;\n" + 
-	  		"Last name: Rgfdgb;\n" + 
-	  		"Date of birthday: 21.02.1998;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 11; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=85, Algebra=66, Computer networks=82, Python=94}\n" + 
-	  		"Average Bal = 81.75\n" + 
-	  		"\n" + 
-	  		"Name: Vlad;\n" + 
-	  		"Last name: Zsfdgddf;\n" + 
-	  		"Date of birthday: 03.01.1999;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 5; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=85, Algebra=66, Matan=65, Computer networks=75, Python=94}\n" + 
-	  		"Average Bal = 77.0\n" + 
-	  		"\n" + 
-	  		"Name: Danka;\n" + 
-	  		"Last name: Zsdfa;\n" + 
-	  		"Date of birthday: 09.11.1997;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 7; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=53, Algebra=66, Matan=15, Computer networks=89}\n" + 
-	  		"Average Bal = 55.75\n" + 
-	  		"\n" + 
-	  		"Group name: System-analysis; Group number: 307; Contract students = 0; Der. students = 3; Kurator: Malyk Igor Vladimirivich.\n";
+	  String res = "\r\n" + 
+	  		"Name: Rostik;\r\n" + 
+	  		"Last name: Rgfdgb;\r\n" + 
+	  		"Date of birthday: 1997-07-22;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 11;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=85, Algebra=66, Computer networks=82, Python=94};\r\n" + 
+	  		"Average Bal = 81.75;\r\n" + 
+	  		"Phone number: 0975497111;\r\n" + 
+	  		"E-mail: Khlan@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Name: Vlad;\r\n" + 
+	  		"Last name: Zsfdgddf;\r\n" + 
+	  		"Date of birthday: 1997-12-11;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 0;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=85, Algebra=66, Matan=65, Computer networks=75, Python=94};\r\n" + 
+	  		"Average Bal = 77.0;\r\n" + 
+	  		"Phone number: 0975463187;\r\n" + 
+	  		"E-mail: Proh@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Name: Danka;\r\n" + 
+	  		"Last name: Zsdfa;\r\n" + 
+	  		"Date of birthday: 1999-08-31;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 7;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=53, Algebra=66, Matan=15, Computer networks=89};\r\n" + 
+	  		"Average Bal = 55.75;\r\n" + 
+	  		"Phone number: 0971131548;\r\n" + 
+	  		"E-mail: Danka@gmail.com\r\n" + 
+	  		"\r\n" + 
+	  		"Group name: System-analysis; Group number: 307; Contract students = 0; Der. students = 3; curator: Malyk Igor Vladimirovich\n";
 	  		
 	  return new Object[][] {
-	      new Object[] { ob.studArr, "Malyk Igor Vladimirivich", "System-analysis", 307, res }
+	      new Object[] { ob.studArr, "Malyk Igor Vladimirovich", "System-analysis", 307, res }
 	    };
   }
   
-  
    	@Test(dataProvider = "hasMaxNProvider")
-  	public void maxNTest(ArrayList<Student> studArr, String cName, String gName, int gNumber, String res) {
+  	public void maxNTest(List<Student> studArr, String cName, String gName, int gNumber, String res) {
 		Group ob = new GroupBuilder(gName).setCuratorName(cName).setStudents(studArr).setGroupNumber(gNumber).build();
 		assertEquals(ob.maxN(), res);
 	}
@@ -204,26 +230,27 @@ public class GroupTest {
 	public Object[][] hasMaxNProvider() {
 	  Global ob = new Global();
 	  ob.setAll();
-	  String res = "Has the most N:\n" + 
-	  		"\n" + 
-	  		"Name: Rostik;\n" + 
-	  		"Last name: Rgfdgb;\n" + 
-	  		"Date of birthday: 21.02.1998;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 11; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=85, Algebra=66, Computer networks=82, Python=94}\n" + 
-	  		"Average Bal = 81.75\n" + 
-	  		"\n";
+	  String res = "Has the most N:\r\n" + 
+	  		"\r\n" + 
+	  		"Name: Rostik;\r\n" + 
+	  		"Last name: Rgfdgb;\r\n" + 
+	  		"Date of birthday: 1997-07-22;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 11;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=85, Algebra=66, Computer networks=82, Python=94};\r\n" + 
+	  		"Average Bal = 81.75;\r\n" + 
+	  		"Phone number: 0975497111;\r\n" + 
+	  		"E-mail: Khlan@gmail.com\r\n";
 	  		
 	  return new Object[][] {
-	      new Object[] { ob.studArr, "Malyk Igor Vladimirivich", "System-analysis", 307, res }
+	      new Object[] { ob.studArr, "Malyk Igor Vladimirovich", "System-analysis", 307, res }
 	    };
 }
-
+	
   	@Test(dataProvider = "studentShipProvider")
-  	public void studentShipTest(ArrayList<Student> studArr, String cName, String gName, int gNumber, float persent, String res) {
+  	public void studentShipTest(List<Student> studArr, String cName, String gName, int gNumber, float persent, String res) {
 		Group ob = new GroupBuilder(gName).setCuratorName(cName).setStudents(studArr).setGroupNumber(gNumber).build();
 		assertEquals(ob.studentShip(persent).toString(), res);
 	}
@@ -232,25 +259,28 @@ public class GroupTest {
 	public Object[][] studentShipProvider() {
 	  Global ob = new Global();
 	  ob.setAll();
-	  String res = "[\n" + 
-	  		"Name: Rostik;\n" + 
-	  		"Last name: Rgfdgb;\n" + 
-	  		"Date of birthday: 21.02.1998;\n" + 
-	  		"Faculcy: Math-fac; \n" + 
-	  		"Propusky: 11; \n" + 
-	  		"Starosta: false;\n" + 
-	  		"Education succes:\n" + 
-	  		"{Java=85, Algebra=66, Computer networks=82, Python=94}\n" + 
-	  		"Average Bal = 81.75\n" + 
+	  String res = "[\r\n" + 
+	  		"Name: Rostik;\r\n" + 
+	  		"Last name: Rgfdgb;\r\n" + 
+	  		"Date of birthday: 1997-07-22;\r\n" + 
+	  		"Faculty: Math-fac;\r\n" + 
+	  		"Missings: 11;\r\n" + 
+	  		"Leader: false;\r\n" + 
+	  		"Education success: " + 
+	  		"{Java=85, Algebra=66, Computer networks=82, Python=94};\r\n" + 
+	  		"Average Bal = 81.75;\r\n" + 
+	  		"Phone number: 0975497111;\r\n" + 
+	  		"E-mail: Khlan@gmail.com\r\n" + 
 	  		"]";
+;
 	  		
 	  return new Object[][] {
-	      new Object[] { ob.studArr, "Malyk Igor Vladimirivich", "System-analysis", 307, 0.4f, res }
+	      new Object[] { ob.studArr, "Malyk Igor Vladimirovich", "System-analysis", 307, 0.4f, res }
 	    };
   	}
   	
   	@Test(dataProvider = "averageBalProvider")
-  	public void averageBalTest(ArrayList<Student> studArr, String cName, String gName, int gNumber, String res) {
+  	public void averageBalTest(List<Student> studArr, String cName, String gName, int gNumber, String res) {
 		Group ob = new GroupBuilder(gName).setCuratorName(cName).setStudents(studArr).setGroupNumber(gNumber).build();
 		assertEquals(ob.averageBal().toString(), res);
 	}
@@ -262,11 +292,7 @@ public class GroupTest {
 	  String res = "{Zsfdgddf=77.0, Rgfdgb=81.75, Zsdfa=55.75}";
 	  		
 	  return new Object[][] {
-	      new Object[] { ob.studArr, "Malyk Igor Vladimirivich", "System-analysis", 307, res }
+	      new Object[] { ob.studArr, "Malyk Igor Vladimirovich", "System-analysis", 307, res }
 	    };
   	}
-  	
-  	
-  	
-  	
 }

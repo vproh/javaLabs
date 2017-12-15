@@ -1,5 +1,6 @@
 package builders;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -8,13 +9,15 @@ import java.util.regex.Pattern;
 import models.Student;
 
 public class StudentBuilder {
-	private String name, lastName, faculcy, birthDay, email, phoneNumber;
-	private boolean starosta, d;
-	private int n; // missings
+	private String name, lastName, faculcy, email, phoneNumber;
+	private LocalDate birthDay;
+	private boolean leader, ship;
+	private int missings; // missings
 	private float averageB = 0f;
 	Map<String, Integer> edu = new HashMap<String, Integer>();
 	
 	public StudentBuilder (String name) {
+		
 		this.name = name;
 	}
 	
@@ -29,13 +32,13 @@ public class StudentBuilder {
 		return this;
 	}
 	
-	public StudentBuilder setFaculcy(String f) {
+	public StudentBuilder setFaculty(String f) {
 		this.faculcy = f;
 		return this;
 	}
 	
-	public StudentBuilder setBirthDay(String b) {
-		this.birthDay = b;
+	public StudentBuilder setBirthDay(LocalDate birthDay) {
+		this.birthDay = birthDay;
 		return this;
 	}
 	
@@ -44,8 +47,8 @@ public class StudentBuilder {
 		return this;
 	}
 	
-	public StudentBuilder setStarosta(boolean i) {
-		this.starosta = i;
+	public StudentBuilder setLeader(boolean i) {
+		this.leader = i;
 		return this;
 	}
 	
@@ -59,21 +62,22 @@ public class StudentBuilder {
 		return this;
 	}
 	
-	public StudentBuilder setN(int n) {
-		this.n = n;
+	public StudentBuilder setMissings(int n) {
+		this.missings = n;
 		
 		return this;
 	}
 	
-	public StudentBuilder setEdu(String[] obj, Integer[] b) {
-		for(int i = 0; i < obj.length; ++ i)
-			this.edu.put(obj[i], b[i]);
+	public StudentBuilder setEdu(String[] sbj, Integer[] mrk) {
+		this.edu.clear();
+		for(int i = 0; i < sbj.length; ++ i)
+			this.edu.put(sbj[i], mrk[i]);
 		
 		return this;
 	}
 	
-	public StudentBuilder setD(boolean d) {
-		this.d = d;
+	public StudentBuilder setShip(boolean ship) {
+		this.ship = ship;
 		return this;
 	}
 	
@@ -82,14 +86,12 @@ public class StudentBuilder {
 	
 		Pattern namePattern = Pattern.compile("^[A-Z][a-z]{1,14}([- ][a-zA-Z]{1,15}){0,3}$");
 		Pattern lastNamePattern = Pattern.compile("^[A-Z][a-z]{1,15}$"); // faculty too
-		Pattern birthDatePattern = Pattern.compile("^(((0?[1-9])|([12][0-9]))\\.((0(?=[1-9])[^2])|(1[0-2]))|(((0?[1-9])|([12][0-8]))\\.(02))|(30\\.((0(?=[1-9])[^2])|(1[0-2])))|(31\\.((0[13578])|1[02])))\\.((19[6-9]\\d)|(200[0-1]))$");
 		Pattern emailPattern = Pattern.compile("^\\w+([\\.-]?\\w+){1,3}@(\\w+\\.\\w{2,3})$");
 		Pattern phoneNumberPattern = Pattern.compile("^(\\+?38)?(((099)|(098)|(097)|(096)|(095)|(068)|(067)|(066)|(065))\\d{7})$");
 	
 		Matcher nameMatch = namePattern.matcher(this.name);
 		Matcher lastNameMatch = lastNamePattern.matcher(this.lastName);
 		Matcher facultyMatch = namePattern.matcher(this.faculcy);
-		Matcher birthDateMatch = birthDatePattern.matcher(this.birthDay);
 		Matcher emailMatch = emailPattern.matcher(this.email);
 		Matcher phoneNumberMatch = phoneNumberPattern.matcher(this.phoneNumber);
 		
@@ -97,18 +99,18 @@ public class StudentBuilder {
 			throw new IllegalArgumentException("Enter correct name!(Contains latin letters up to 15!");
 		if(!(lastNameMatch.matches()))
 			throw new IllegalArgumentException("Enter correct last name! (Contains latin letters up to 15!)");
-		if(!(birthDateMatch.matches()))
-			throw new IllegalArgumentException("Enter correct birth date(In format dd(day).mm(month).YYYY(year)!");
 		if(!(phoneNumberMatch.matches()))
 			throw new IllegalArgumentException("Enter correct phone number!(begin on \"+380\" or \"0xx\")");
 		if(!(emailMatch.matches()))
 			throw new IllegalArgumentException("Enter correct e-mail!(must have \'@\' and \'.\' ");
 		if(!(facultyMatch.matches()))
 			throw new IllegalArgumentException("Enter correct faculty name! (Contains latin letters up to 15!)");			
-		if(n < 0 || n > 50)
+		if(missings < 0 || missings > 50)
 			throw new IllegalArgumentException("Enter correct n!(not negative and not more than 50)\n");
 		if(averageB < 0 || averageB > 100)
 			throw new IllegalArgumentException("Enter correct average Bal!(not negative and not more than 100)\n");
+		if(birthDay.getYear() > 2001 || birthDay.getYear() < 1994)
+			throw new IllegalArgumentException("Enter correct born year ! (from 1994 to 2001)");
 		
 		for(String key: edu.keySet()) {
 			Matcher subjectMatch = namePattern.matcher(key);
@@ -117,7 +119,7 @@ public class StudentBuilder {
 		}
 		for(Integer v: edu.values()) {
 			if(v < 0 || v > 100)
-				throw new IllegalArgumentException("One or more baliv is incorrect(from 0 to 100)!");
+				throw new IllegalArgumentException("One or more marks is incorrect(from 0 to 100)!");
 		}
 				
 		student.setName(name);
@@ -126,11 +128,11 @@ public class StudentBuilder {
 		student.setPhoneNumber(phoneNumber);
 		student.setEmail(email);
 		student.setFaculty(faculcy);
-		student.setN(n);
-		student.setStarosta(starosta);
+		student.setMissings(missings);
+		student.setLeader(leader);
 		student.setEdu(edu);
 		student.setAverageBl(averageB);
-		student.setD(d);
+		student.setShip(ship);
 			
 		return student;
 	}

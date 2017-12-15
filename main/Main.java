@@ -2,7 +2,10 @@ package main;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -11,6 +14,7 @@ import org.xml.sax.SAXException;
 
 import builders.GroupBuilder;
 import builders.StudentBuilder;
+import dataBase.DataBase;
 import models.Group;
 import models.Student;
 
@@ -18,63 +22,48 @@ public class Main {
 
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		String url = "jdbc:mysql://localhost:3306/test";
-		String user = "root";
-		String password = "toor";
+		List<Student> studArr = null;
 		String path = "tmp/307.xml";
 		
 		try {
-			String[] subjects1 = { "Matan", "Algebra", "Computer networks", "Java", "Python" };
-			Integer[] baly1 = { 65, 66, 75, 85, 94 };
+			studArr = new ArrayList<Student>();
+			String[] group307Sbj = { "Math", "Computer networks", "Operation system", "Java", "Python" };
+			String[] group304Sbj = { "Geometry", "Math", "Python", "Algebra" };
 			
-			String[] subjects2 = {"Algebra", "Computer networks", "Java", "Python" };
-			Integer[] baly2 = {66, 82, 85, 94 };
+			Integer[] mark1 = { 75, 70, 82, 85, 90 };
+			Integer[] mark2 = { 68, 84, 73, 68, 93 };
+			Integer[] mark3 = { 92, 68, 56, 81 };
+			Integer[] mark4 = { 82, 75, 77, 88 };
+			Integer[] mark5 = { 60, 85, 91, 75 };
 			
-			String[] subjects3 = { "Matan", "Algebra", "Computer networks", "Java" };
-			Integer[] baly3 = { 15, 66, 89, 53 };
 			
-			String[] subjects4 = { "Matan", "Algebra", "Computer networks", "Java", "Python" };
-			Integer[] baly4 = { 100, 75, 66, 50, 91 };
-			/*
-			String[] subjects5 = { "Matan", "Algebra", "Java", "Python" };
-			Integer[] baly5 = { 92, 68, 56, 81};
-			*/
-			
-			Student student1 = new StudentBuilder("Vlad").setLastName("Zsfdgddf").setBirthDay("03.01.1999")
+			Student student1 = new StudentBuilder("Vlad").setLastName("Zsfdgddf").setBirthDay(LocalDate.of(1997, Month.DECEMBER, 11))
 									.setPhoneNumber("0975463187").setEmail("Proh@gmail.com")
-									.setFaculcy("Math-fac").setD(true).setEdu(subjects1,  baly1).build();
-			Student student2 = new StudentBuilder("Rostik").setLastName("Rgfdgb").setBirthDay("21.02.1998")
-									.setPhoneNumber("0975497111").setEmail("Khlan@gmail.com")
-									.setFaculcy("Math-fac").setN(11).setD(true).setEdu(subjects2, baly2).build();
-			Student student3 = new StudentBuilder("Danka").setLastName("Zsdfa").setBirthDay("09.11.1997")
+									.setFaculty("Math-fac").setShip(true).setEdu(group307Sbj,  mark1).build();
+			Student student2 = new StudentBuilder("Rostik").setLastName("Rgfdgb").setBirthDay(LocalDate.of(1997, Month.JULY, 22))
+									.setPhoneNumber("0975497111").setLeader(true).setEmail("Khlan@gmail.com")
+									.setFaculty("Math-fac").setMissings(11).setShip(true).setEdu(group307Sbj, mark2).build();
+			Student student3 = new StudentBuilder("Danka").setLastName("Zsdfa").setBirthDay(LocalDate.of(1999, Month.AUGUST, 31))
 									.setPhoneNumber("0971131548").setEmail("Danka@gmail.com")
-									.setFaculcy("Math-fac").setN(7).setD(true).setEdu(subjects3, baly3).build();
+									.setFaculty("Math-fac").setMissings(7).setShip(true).setEdu(group304Sbj, mark3).build();
 		
-			Student student4 = new StudentBuilder("Yarik").setLastName("Asfsfdvb").setBirthDay("16.12.1998")
-									.setPhoneNumber("0978721375").setEmail("Yarik@gmail.com")
-									.setFaculcy("Math-fac").setD(true).setStarosta(true).setEdu(subjects4, baly4).build();
-			/*
-			Student student5 = new StudentBuilder("Jecka").setLastName("Asdgfdhvb").setBirthDay("30.08.1999")
+			Student student4 = new StudentBuilder("Artem").setLastName("Omsk").setBirthDay(LocalDate.of(1998, Month.MARCH, 3))
+									.setPhoneNumber("0978721375").setEmail("Katia@gmail.com")
+									.setFaculty("Math-fac").setShip(true).setLeader(true).setEdu(group304Sbj, mark4).build();
+			
+			Student student5 = new StudentBuilder("Jecka").setLastName("Sidoruk").setBirthDay(LocalDate.of(1997, Month.DECEMBER, 21))
 									.setPhoneNumber("0971733375").setEmail("jeckSid@gmail.com")
-									.setFaculcy("Math-fac").setD(true).setEdu(subjects5, baly5).build();
-			*/
-			student1.addN(4);
-	  		student4.addN(15);
-	  		//student5.addN(4);
+									.setFaculty("Math-fac").setShip(false).setEdu(group304Sbj, mark5).build();
 			
-			ArrayList<Student> studArr = new ArrayList<Student> ();
-			
-			studArr.add(student1);
-			studArr.add(student2);
-			studArr.add(student3);
+			//studArr.add(student3);
 			//studArr.add(student4);
-			//studArr.add(student5);
-			
-			Group group307 = new GroupBuilder().setGroupName("System-analysis").setStudents(studArr).setCuratorName("Malyk Igor Vladimirovich").setGroupNumber(307).build();
 			Group tmpGroup = new Group();
+			//Group group307 = new GroupBuilder().setGroupName("System-analysis").setStudents(studArr).setCuratorName("Malyk Igor Volodymirovich").setGroupNumber(307).build();
+			//DataBase db = new DataBase();
+			//Group group304 = new GroupBuilder("Math").setStudents(studArr).setGroupNumber(304).setCuratorName("Nesterenko").build();
 			
 			//group307.sortByLastName();
-			
+			//System.out.println(student3.years() + " years old");
 			//group307.sortByEdu();
 			
 			//System.out.println(group307.studentShip(0.4f).toString());
@@ -84,22 +73,26 @@ public class Main {
 			//System.out.println(group307.toString());
 			
 			//System.out.print(group307.maxN());
+			
 			//tmpGroup = Group.fromJson(path);
 			//tmpGroup = Group.fromXml(path);
 			//tmpGroup = Group.fromTxt(path);
-			
-			//tmpGroup = Group.fromSql(url, user, password, 307);
-			//tmpGroup.toSql(url, user, password);
-			//group307.addStudentSql(url, user, password, student2);
-			//group307.deleteStudentSql(url, user, password, 2);
+
+			//tmpGroup = db.fromSql(302);
+			//db.toSql(group304);
+			//db.deleteStudent(307, 1);
+			//db.newMarks(307, 1, subjects1, baly1);
+			//db.newMark(307, 1, "Computer networks", 82);
+			//db.addStudent(304, student5);
+			//db.deleteBD("test");
 			//System.out.println(group307.toJson(path));
-			System.out.println(group307.toXml(path));
+			//System.out.println(group307.toXml(path));
 			//System.out.println(group307.toTxt(path));
 			
 			//System.out.println(tmpGroup.toString());
 		}
 		
-		catch(IllegalArgumentException | IOException | JAXBException e) {
+		catch(IllegalArgumentException e) {
 			System.out.println(e.toString()); 
 		}
 	}
