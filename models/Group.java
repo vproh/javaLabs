@@ -199,7 +199,7 @@ public class Group {
 			quicksortEdu(i, high);
 	}
 	
-	public String maxN() {
+	public Student maxN() {
 		int max = 0;
 		Student person = new Student();
 		
@@ -209,7 +209,7 @@ public class Group {
 				max = i.getMissings();
 			}
 		
-		return "Has the most N:\r\n" + person.toString();
+		return person;
 	}
 	
 	public void sortByLastName() {
@@ -242,7 +242,7 @@ public class Group {
 		}
 	}
 	
-	public Map<String, Float> averageBal () {
+	public Map<String, Float> averageMark () {
 		Map<String, Float> averageList = new HashMap<String, Float>();
 		Iterator<String> it;
 		Set<String> sbjs;
