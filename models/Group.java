@@ -5,13 +5,15 @@ import java.time.LocalDate;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -462,22 +464,47 @@ public class Group {
 		return group;
 	}
 	
-	public static String[] getSubjects(Student student) {
-		String[] sbj = null;
-		Set<String> subjects = null;
-		subjects = student.getEdu().keySet();
-		sbj = new String[subjects.size()];
-		sbj = subjects.toArray(sbj);
-			
-		return sbj;
+	public static Integer[] getMarks(Student stud) {
+		return stud.getEdu().values().stream().toArray(size -> new Integer[size]);
 	}
 	
-	public static Integer[] getMarks(Student student) {
-		Collection<Integer> mrk = student.getEdu().values();
-		Integer[] marks = new Integer[mrk.size()];
-		marks = mrk.toArray(marks);
+	public static String[] getSubjects(Student student) {
 		
-		return marks;
+		return student.getEdu().keySet().stream().toArray(size -> new String[size]);
+	}
+	
+	public int amountStudents() {
+		return (int) getStudents().stream().count();
+	}
+	
+	public void streamSortByLastName() {
+		List<Student> stud = getStudents().stream().sorted((s1, s2) -> s1.getLastName()
+										.compareTo(s2.getLastName())).collect(Collectors.toList());
+		setStudents(stud);
+		
+		return;
+	}
+	
+	public void streamSortByEdu() {
+		Stream<Student> studStream = getStudents().stream();
+		List<Student> stud = studStream.sorted((s1, s2) -> Double.compare(s1.getEdu().values().stream().mapToInt(s -> s.intValue()).average().orElse(0),
+													 						s2.getEdu().values().stream().mapToInt(s -> s.intValue()).average().orElse(0)))
+				 															.collect(Collectors.toList());
+		 Collections.reverse(stud);
+		 setStudents(stud);
+		 
+		 return;
+	}
+	
+	public void streamSortByN() {
+		List<Student> stud = getStudents().stream().sorted( (s1, s2) -> Integer.compare(s1.getMissings(), s2.getMissings()) ).collect(Collectors.toList());
+	
+		setStudents(stud);
+		return;
+	}
+	
+	public Student streamMaxN() {
+		return getStudents().stream().max((s1, s2) -> Integer.compare(s1.getMissings(), s2.getMissings())).get();
 	}
 	
 	@Override

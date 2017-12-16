@@ -10,7 +10,6 @@ import builders.StudentBuilder;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.sql.SQLException;
@@ -28,12 +27,12 @@ public class GroupTest {
 	Student student3 = null;
 	Student student4 = null;
 	List<Student> studArr = null;
-	String[] groupSbj1 = { "Math", "Computer networks", "Operation system", "Java", "Python" };
 	
 	@BeforeTest
 	public void initGroups() throws SQLException {
 		studArr = new ArrayList<Student>();
 		
+		String[] groupSbj1 = { "Math", "Computer networks", "Operation system", "Java", "Python" };
 		Integer[] mark1 = { 75, 70, 82, 85, 90 };
 		Integer[] mark2 = { 68, 84, 73, 68, 93 };
 		Integer[] mark3 = { 92, 68, 56, 81, 60 };
@@ -69,13 +68,22 @@ public class GroupTest {
 	    return true;
 	  }
 	
-	public boolean equalsMasStrings(String[] sbj, String[] expected) {
-		if(sbj.length != expected.length)
+	public <T> boolean equalsArr(T[] obj1, T[] obj2) {
+		if(obj1.length != obj2.length)
 			return false;
-	    for(int i = 0; i < sbj.length; ++ i)
-	      if(!sbj[i].equals(expected[i]))
-	        return false;
-	    return true;
+		boolean wasEquals;
+		for(T i: obj1) {
+			wasEquals = false;
+			for(T j: obj2)
+				if(i == j) {
+					wasEquals = true;
+					break;
+				}
+			if(!wasEquals)
+				return false;
+		}
+		
+		return true;
 	  }
 	
 	
@@ -177,4 +185,16 @@ public class GroupTest {
 		
 		return new Object[][] { {group1, averageListExp} };
 	}
+	
+	@Test
+	public void getSubjectsTest() {
+		assertTrue(equalsArr(Group.getSubjects(student1), new String[] { "Math", "Computer networks", "Operation system", "Java", "Python" } ));
+	}
+	
+	@Test
+	public void getMarksTest() {
+		assertTrue(equalsArr(Group.getMarks(student1), new Integer[] { 75, 70, 82, 85, 90 } ));
+	}
+	
+	
 }
