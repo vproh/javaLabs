@@ -1,6 +1,7 @@
 package test;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -8,7 +9,6 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -30,7 +30,7 @@ public class DataBaseTest {
 	DataBase db = null;
 	String[] groupSbj1 = { "Math", "Computer networks", "Operation system", "Java", "Python" };
 	String[] groupSbj2 = { "Geometry", "Math", "Python", "Algebra" };
-	@BeforeTest
+	
 	public void initDB() throws ClassNotFoundException, SQLException {
 		db = new DataBase("jdbc:mysql://localhost:3306/test", "root", "toor");
 	}
@@ -66,10 +66,10 @@ public class DataBaseTest {
 		group2 = new GroupBuilder("Group two").setGroupNumber(102).setCuratorName("Curator two").setStudents(studArr2).build();
 	}
 
-	@Test(dataProvider = "toSqlProvider", priority=1)
-	public void toSqlTest(Group group, boolean result) {
+	@Test(dataProvider = "addGroupProvider", priority=1)
+	public void addGroupTest(Group group, boolean result) {
 		try {
-			assertEquals(result, db.toSql(group));
+			assertEquals(result, db.addGroup(group));
 		}
 		catch(SQLException e) {
 			System.out.println(e.toString());
@@ -77,23 +77,24 @@ public class DataBaseTest {
 	}
 	
 	@DataProvider()
-	public Object[][] toSqlProvider() {
+	public Object[][] addGroupProvider() {
 		try {
+			initDB();
 			initGroups();
 			return new Object[][] { { group1, true }, { group2, true } };
 		}
-		catch(SQLException e) {
+		catch(SQLException | ClassNotFoundException e) {
 			System.out.println(e.toString());
 		}
 		return null;
 	}
 	
 	@Test(priority=2)
-	public void fromSqlTest() {
+	public void getGroupTest() {
 		Group emptyGroup = null;
 		try {
-			emptyGroup = db.fromSql(101);
-			emptyGroup.equals(group1);
+			emptyGroup = db.getGroup(101);
+			assertTrue(emptyGroup.equals(group1));
 		}
 		catch(SQLException e) {
 			System.out.println(e.toString());
@@ -101,11 +102,11 @@ public class DataBaseTest {
 	}
 	
 	@Test(priority=3)
-	public void fromSqlTest1() {
+	public void getGroupTest1() {
 		Group emptyGroup = null;
 		try {
-			emptyGroup = db.fromSql(102);
-			emptyGroup.equals(group2);
+			emptyGroup = db.getGroup(102);
+			assertTrue(emptyGroup.equals(group2));
 		}
 		catch(SQLException e) {
 			System.out.println(e.toString());
@@ -113,9 +114,9 @@ public class DataBaseTest {
 	}
 	
 	@Test(dataProvider = "deleteStudentProvider", priority=4)
-	public void deleteStudentTest(int studId, int groupNum, boolean result) throws SQLException {
+	public void deleteStudentTest(int studId, boolean result) throws SQLException {
 		try {
-			assertEquals(result, db.deleteStudent(groupNum, studId));
+			assertTrue(result == db.deleteStudent(studId));
 		}
 		catch(SQLException e) {
 			System.out.println(e.toString());
@@ -124,13 +125,13 @@ public class DataBaseTest {
 	
 	@DataProvider()
 	public Object[][] deleteStudentProvider() {
-		return new Object[][] { {1, 101, true}, {3, 102, true} };
+		return new Object[][] { {1, true}, {3, true} };
 	}
 	
 	@Test(dataProvider = "addStudentProvider", priority=5)
 	public void addStudentTest(Student student, int groupNum, boolean result) {
 		try {
-			assertEquals(result, db.addStudent(groupNum, student));
+			assertTrue(result == db.addStudent(groupNum, student));
 		}
 		catch(SQLException e) {
 			System.out.println(e.toString());
@@ -150,9 +151,9 @@ public class DataBaseTest {
 	}
 	
 	@Test(dataProvider = "updateMarkProvider", priority=6)
-	public void updateMarkTest(int studentId, int groupNum, String sbj, Integer mark, boolean result) {
+	public void updateMarkTest(int studentId, String sbj, Integer mark, boolean result) {
 		try {
-			assertEquals(result, db.newMark(groupNum, studentId, sbj, mark));
+			assertTrue(result == db.updateMark(studentId, sbj, mark));
 		}
 		catch(SQLException e) {
 			System.out.println(e.toString());
@@ -161,13 +162,13 @@ public class DataBaseTest {
 	
 	@DataProvider()
 	public Object[][] updateMarkProvider() {
-			return new Object[][] { {1, 101, "Java", 82, true}, {4, 102, "Algebra", 75, true} };
+			return new Object[][] { {5, "Java", 82, true}, {4, "Algebra", 75, true} };
 	}
 	
 	@Test(dataProvider = "updateMarksProvider", priority=7)
-	public void updateMarksProvider(int studentId, int groupNum, String[] sbj, Integer[] mark, boolean result) {
+	public void updateMarksTest(int studentId, List<String> sbj, List<Integer> marks, boolean result) {
 		try {
-			assertEquals(result, db.newMarks(groupNum, studentId, sbj, mark));
+			assertTrue(result == db.updateMarks(studentId, sbj, marks));
 		}
 		catch(SQLException e) {
 			System.out.println(e.toString());
@@ -176,12 +177,19 @@ public class DataBaseTest {
 	
 	@DataProvider()
 	public Object[][] updateMarksProvider() {
+		List<String> newSbjs = new ArrayList<String>();
+		List<Integer> newMarks = new ArrayList<Integer>();
+		
 		try {
 			initGroups();
-			Integer[] newMark101 = { 90, 85, 78, 75, 68 };
-			Integer[] newMark102 = {70, 77, 85, 90};
+			newSbjs.add("Math");
+			newSbjs.add("Geometry");
+			newSbjs.add("Python");
+			newMarks.add(64);
+			newMarks.add(75);
+			newMarks.add(82);
 			
-			return new Object[][] { {1, 101, groupSbj1, newMark101, true}, {4, 102, groupSbj2, newMark102, true} };
+			return new Object[][] { {2, newSbjs, newMarks, true} };
 		}
 		catch(SQLException e) {
 			System.out.println(e.toString());
@@ -190,7 +198,7 @@ public class DataBaseTest {
 	}
 	
 	@Test(dataProvider = "deleteDbProvider", priority=8)
-	public void deleteDb(String nameDB, boolean result) {
+	public void deleteDbTest(String nameDB, boolean result) {
 		try {
 			assertEquals(result, db.deleteDB(nameDB));
 		}

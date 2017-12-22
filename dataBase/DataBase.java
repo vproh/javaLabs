@@ -13,73 +13,86 @@ import models.Student;
 public class DataBase {
 	private static Connection con;
     private static String user;
-    private static String password;
     private static String url;
 	
 	public DataBase() throws SQLException, ClassNotFoundException {
-		Class.forName("com.mysql.jdbc.Driver");
-		user = "root";
-		password = "toor";
-		url = "jdbc:mysql://localhost:3306/test";
-		con = DriverManager.getConnection(url, user, password);
+		this("jdbc:mysql://localhost:3306/test", "root", "toor");
 	}
 	
-	public DataBase(String url, String user, String password) throws ClassNotFoundException, SQLException {
-		Class.forName("com.mysql.jdbc.Driver");
-		DataBase.url = url;
-		DataBase.user = user;
-		DataBase.password = password;
-		con = DriverManager.getConnection(url, user, password);
+	public DataBase(String url, String user, String password) {
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			DataBase.url = url;
+			DataBase.user = user;
+			con = DriverManager.getConnection(url, user, password);
+			/*
+			clearDB();
+			createStudentGroupTable();
+			createStudentsTable();
+			createMarksTable();
+			*/
+		}
+		catch(ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public Connection getCon() {
-		return con;
-	}
-
-	public void setCon(Connection con) {
-		DataBase.con = con;
+		return con;// null not null
 	}
 	
 	public String getUrl() {
 		return url;
 	}
 
-	public void setUrl(String url) {
-		DataBase.url = url;
-	}
-
 	public String getUser() {
 		return user;
 	}
-
-	public void setUser(String user) {
-		DataBase.user = user;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		DataBase.password = password;
+	protected List<String> getStudentIdSubjects(int studentId) throws SQLException {
+		String sqlRequest = null;
+		List<String> subjects = null;
+		PreparedStatement pStmt = null;
+		ResultSet res = null;
+		
+		try {
+			subjects = getColumns("marks");
+			sqlRequest = "select * from marks where markId=?";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, studentId);
+			res = pStmt.executeQuery();
+			res.next();
+			for(int i = 0; i < subjects.size(); ++ i)
+				if(res.getInt(subjects.get(i)) == 0) {
+					subjects.remove(i);
+					-- i;
+				}
+			
+			return subjects;
+		}
+		finally {
+			if(res != null)
+				res.close();
+			if(pStmt != null)
+				pStmt.close();
+		}
 	}
 	
-	protected static List<String> getColumns (String nameTable) throws SQLException {
+	protected List<String> getColumns (String nameTable) throws SQLException {
 		List<String> columns = null;
 		ResultSet res = null;
-		PreparedStatement stmt = null;
+		PreparedStatement pStmt = null;
 		try {
 			columns = new ArrayList<String>();
-			stmt = con.prepareStatement(String.format("show columns from %s;", nameTable));
-			res = stmt.executeQuery();
+			pStmt = con.prepareStatement(String.format("show columns from %s;", nameTable));
+			res = pStmt.executeQuery();
 			res.next(); // miss markId
 			while(res.next())
 				columns.add(res.getString("Field"));
 			return columns;
 		}
 		finally {
-			if(stmt != null)
-				stmt.close();
+			if(pStmt != null)
+				pStmt.close();
 			if(res != null)
 				res.close();
 		}
@@ -89,122 +102,64 @@ public class DataBase {
 		List<String> columns = null;
 		try {
 			columns = getColumns("marks");
-			for(int i = 0; i < columns.size(); ++ i) {
-				//System.out.println("Sbj = " + sbj +"\nresSbj = " + columns.get(i));					
+			for(int i = 0; i < columns.size(); ++ i)				
 				if(sbj.equals(columns.get(i)))
 					return true;
-			}
 			return false;
 		}
 		finally {
 		}
 	}
-	
-	protected boolean isStudentGroupCorrect(int groupNum, int studentId) throws SQLException {
-		String request = null;
-		ResultSet res = null;
-		PreparedStatement stmt = null;
-		
-		try {
-			request = "select groupId from students where studentId=?;";
-			stmt = con.prepareStatement(request);
-			stmt.setInt(1, studentId);
-			res = stmt.executeQuery();
-			res.first();
-			if(Integer.parseInt(res.getString(1)) == groupNum)
-				return true;
-			return false;
-		}
-		finally {
-			if(stmt != null)
-				stmt.close();
-			if(res != null)
-				res.close();
-		}
-	}
-	
-	protected boolean isStudentIdCorrect(int studId) throws SQLException {
-		String request = null;
-		ResultSet res = null;
-		PreparedStatement prStmt = null;
-		
-		try {
-			request = "select * from students where studentId=?;";
-			prStmt = con.prepareStatement(request);
-			prStmt.setInt(1, studId);
-			res = prStmt.executeQuery();
-			res.first();
-			if(res.isFirst())
-				return true;
-			return false;
-		}
-		finally {
-			if(res != null)
-				res.close();
-			if(prStmt != null)
-				prStmt.close();
-		}
-	}
-	
+
 	protected void addToTableSubject(String nameTable, String sbj) throws SQLException {
-		String request = null;
-		PreparedStatement stmt = null;
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
 		
 		try {
-			request = String.format("alter table %s add %s varchar(20)", nameTable, '`' + sbj + '`');
-			stmt = con.prepareStatement(request);
-			stmt.executeUpdate();
+			sqlRequest = String.format("alter table %s add %s varchar(20)", nameTable, '`' + sbj + '`');
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.executeUpdate();
 		}
 		finally {
-			if(stmt != null)
-				stmt.close();
+			if(pStmt != null)
+				pStmt.close();
 		}
 	}
 	
-	protected void fieldsMoveUp(int start, int end) throws SQLException { // works ?
-		String request = null;
-		PreparedStatement stmt = null;
+	protected boolean isGroupInDB(int groupNumber) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		ResultSet res = null;
 		
 		try {
-			while(start < end) {
-				request = "update students set studentId=? where studentId=?;";
-				stmt = con.prepareStatement(request);
-				stmt.setInt(1, start);
-				stmt.setInt(2, start + 1);
-				stmt.executeUpdate();
-				request = "update marks set markId=? where markId=?;";
-				stmt.close();
-				stmt = con.prepareStatement(request);
-				stmt.setInt(1, start);
-				stmt.setInt(2, start + 1);
-				stmt.executeUpdate();
-				stmt.close();
-				request = "update students set markId=? where markId=?;";
-				stmt = con.prepareStatement(request);
-				stmt.setInt(1, start);
-				stmt.setInt(2, start + 1);
-				stmt.executeUpdate();
-				
-				start ++;
-			}
+			sqlRequest = "select * from studentGroup where groupNumber=?;";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, groupNumber);
+			res = pStmt.executeQuery();
+			res.first();
+			if(!res.isFirst())
+				return false;
+			
+			return true;
 		}
 		finally {
-			if(stmt != null)
-				stmt.close();
+			if(res != null)
+				res.close();
+			if(pStmt != null)
+				pStmt.close();
 		}
 	}
 	
 	protected boolean createStudentsTable() throws SQLException {
-		String request = null;
+		String sqlRequest = null;
 		Statement stmt = null;
 		
 		try {
 			stmt = con.createStatement();
-			request = "create table students (studentId int primary key, name varchar(20), lastName varchar(20), "
-					+ "birthDay varchar(15), faculty varchar(20), isLeader tinyint(1), missings int, "
-					+ "ship tinyint (1), email varchar(20), phoneNumber varchar(13), groupId int, markId int)";
-			stmt.executeUpdate(request);
-			System.out.println("Students table succssefully created");
+			sqlRequest = "create table students(studentId int not null primary key auto_increment, firstName varchar(20), lastName varchar(20), "
+					+ "birthDay date, faculty varchar(20), isLeader tinyint(1), missings int, "
+					+ "ship tinyint(1), email varchar(20), phoneNumber varchar(13), groupId int, foreign key(groupId) references studentGroup(groupNumber))";
+			stmt.executeUpdate(sqlRequest);
 			return true;
 		}
 		finally {
@@ -214,14 +169,13 @@ public class DataBase {
 	}
 	
 	protected boolean createStudentGroupTable() throws SQLException {
-		String request = null;
+		String sqlRequest = null;
 		Statement stmt = null;
 		
 		try {
 			stmt = con.createStatement();
-			request = "create table studentGroup(groupNumber int primary key, groupName varchar(20), curatorName varchar(30))";
-			stmt.executeUpdate(request);
-			System.out.println("Student`s group table succssefully created");
+			sqlRequest = "create table studentGroup(groupNumber int not null primary key, groupName varchar(20), curatorName varchar(30))";
+			stmt.executeUpdate(sqlRequest);
 			return true;
 		}
 		finally {
@@ -230,23 +184,15 @@ public class DataBase {
 		}
 	}
 	
-	protected boolean createMarksTable(Student student) throws SQLException {
-		String request = null;
-		String[] sbj = null;
+	protected boolean createMarksTable() throws SQLException {
+		String sqlRequest = null;
 		Statement stmt = null;
 		
 		try {
 			stmt = con.createStatement();
-			sbj = Group.getSubjects(student);
 			
-			request = "create table marks(markId int primary key, ";
-			for(int i = 0; i < sbj.length - 1; ++ i) 
-				request += "`" + sbj[i] + "`" + " int, ";
-			request += "`" + sbj[sbj.length - 1] + "`" + " int);";
-			
-			stmt.executeUpdate(request);
-			//System.out.println("Request = " + request);
-			System.out.println("Marks table succssefully created");
+			sqlRequest = "create table marks(markId int not null primary key auto_increment)";
+			stmt.executeUpdate(sqlRequest);
 			
 			return true;
 		}
@@ -256,97 +202,101 @@ public class DataBase {
 		}
 	}
 	
-	public boolean toSql(Group group) throws SQLException {
-	Student student = null;
-	String request = null;
-	List<Student> students = null;
-	ResultSet res = null;
-	Statement stmt = null;
-	PreparedStatement prStmt = null;
-	
-	try {
-		students = group.getStudents();
-		if(students == null)
-			throw new IllegalArgumentException("This group have no students !");
-		request = "show tables;";
-		stmt = con.createStatement();
-		res = stmt.executeQuery(request);
-		res.first();
-		if(!res.isFirst()) {
-			createStudentsTable();
-			createStudentGroupTable();
-			createMarksTable(students.get(0));
-		}
-		/*adding to studentGroup*/
-		request = "insert into studentGroup values(?, ?, ?);";
-		prStmt = con.prepareStatement(request);
-		prStmt.setInt(1, group.getGroupNumber());
-		prStmt.setString(2, group.getGroupName());
-		prStmt.setString(3, group.getCuratorName());
-		prStmt.executeUpdate();
-		/*adding students and their marks*/
-		for(int i = 0; i < students.size(); ++ i) {
-			student = students.get(i);
-			addStudent(group.getGroupNumber(), student);
-		}
+	protected boolean addToStudentGroupTable(Group group) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
 		
-	}
-	finally {
-		if(res != null)
-			res.close();
-		if(prStmt != null)
-			prStmt.close();
-		if(stmt != null)
-			stmt.close();
+		try {
+			sqlRequest = "insert into studentGroup values(?, ?, ?);";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, group.getGroupNumber());
+			pStmt.setString(2, group.getGroupName());
+			pStmt.setString(3, group.getCuratorName());
+			pStmt.executeUpdate();
+			return true;
+		}
+		finally {
+			if(pStmt != null)
+				pStmt.close();
+		}
 	}
 	
-	return true;
-}
+	protected boolean addToMarksTable(String[] sbj, Integer[] marks) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		
+		try {
+			for(int i = 0; i < sbj.length; ++ i) {
+				if(!IsSbjInDB(sbj[i]))
+					addToTableSubject("marks", sbj[i]);
+			}
+			
+			sqlRequest = "insert into marks(markId, `";
+			for(int i = 0; i < sbj.length - 1; ++ i)
+				sqlRequest += sbj[i] + "`, `";
+			sqlRequest += sbj[sbj.length - 1] + "`) values(markId, ";
+			
+			for(int i = 0; i < marks.length - 1; ++ i)
+				sqlRequest += "?, ";
+			sqlRequest += "?);";
+			pStmt = con.prepareStatement(sqlRequest);
+			for(int i = 0; i < marks.length; ++ i)
+				pStmt.setInt(i + 1, marks[i]);
+			pStmt.executeUpdate();
+			
+			return true;
+		}
+		finally {
+			if(pStmt != null)
+				pStmt.close();
+		}
+	}
 	
-	public Group fromSql(int groupNum) throws SQLException {
-		String request = null;
-		ResultSet res = null;
-		ResultSet res1 = null;
+	public boolean addGroup(Group group) throws SQLException {
 		List<Student> students = null;
+	
+		try {
+			students = group.getStudents();
+			if(students == null)
+				throw new IllegalArgumentException("This group have no students !");
+		
+			/*adding to studentGroup*/
+			addToStudentGroupTable(group);
+
+			/*adding students and their marks*/
+			for(int i = 0; i < students.size(); ++ i)
+				addStudent(group.getGroupNumber(), students.get(i));
+			return true;
+		}
+		finally {
+		}
+	}
+	
+	protected List<Student> getStudents(int groupNum) throws SQLException {
+		List<Student> students = null;
+		String sqlRequest = null;
 		List<Integer> newMarks = null;
 		List<String> newSbj = null;
 		int tmpMark = 0;
 		StudentBuilder studBuild = null;
-		GroupBuilder groupBuild = null;
 		String[] sbj = null;
 		Integer[] marks = null;
-		PreparedStatement stmt = null;
+		PreparedStatement pStmt = null;
+		ResultSet res = null;
+		ResultSet resultMarks = null;
 		
 		try {
 			students = new ArrayList<Student>();
-			newMarks = new ArrayList<Integer>();
-			groupBuild = new GroupBuilder();
 			newSbj = getColumns("marks");
+			newMarks = new ArrayList<Integer>();
 			
-			request = "select groupNumber, groupName, curatorName from studentgroup"
-					+ " where groupNumber=?;";
-			stmt = con.prepareStatement(request);
-			stmt.setInt(1, groupNum);
-			res = stmt.executeQuery();
-			res.first();
-			if(!res.isFirst())
-				throw new IllegalArgumentException("Incorrect group number !!!");
-			/* paste group information */
-			
-			groupBuild.setGroupName(res.getString("groupName"));
-			groupBuild.setGroupNumber(groupNum);
-			groupBuild.setCuratorName(res.getString("curatorName"));		
-			stmt.close();
-			res.close();
-			request = "select name, lastName, birthDay, faculty, isLeader, missings, ship, email, "
-					+ "phoneNumber, markId from students where groupId=?;";
-			stmt = con.prepareStatement(request);
-			stmt.setInt(1, groupNum);
-			res = stmt.executeQuery();
-			
+			sqlRequest = "select * from students where groupId=?;";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, groupNum);
+			res = pStmt.executeQuery();
 			while(res.next()) {
 				studBuild = new StudentBuilder(null);
-				studBuild.setName(res.getString("name"));
+				studBuild.setFirstName(res.getString("firstName"));
 				studBuild.setLastName(res.getString("lastName"));
 				studBuild.setBirthDay(res.getDate("birthDay").toLocalDate());
 				studBuild.setFaculty(res.getString("faculty"));
@@ -356,14 +306,14 @@ public class DataBase {
 				studBuild.setEmail(res.getString("email"));
 				studBuild.setPhoneNumber(res.getString("phoneNumber"));
 				
-				request = "select * from marks where markId=?;";
-				stmt = con.prepareStatement(request);
-				stmt.setInt(1, res.getInt("markId"));
-				res1 = stmt.executeQuery();
-				res1.next();
+				sqlRequest = "select * from marks where markId=?;";
+				pStmt = con.prepareStatement(sqlRequest);
+				pStmt.setInt(1, res.getInt("studentId"));
+				resultMarks = pStmt.executeQuery();
+				resultMarks.next();
 				for(int i = 0; i < newSbj.size(); ++ i) {
-					tmpMark = res1.getInt(newSbj.get(i));
-					if(res1.wasNull()) {
+					tmpMark = resultMarks.getInt(newSbj.get(i));
+					if(resultMarks.wasNull()) {
 						newSbj.remove(i);
 						-- i;
 					}
@@ -379,89 +329,89 @@ public class DataBase {
 				studBuild.setEdu(sbj, marks);
 				students.add(studBuild.build());
 			}
-
-			return groupBuild.setStudents(students).build();
+			
+			return students;
 		}
 		finally {
-			if(stmt != null)
-				stmt.close();
 			if(res != null)
 				res.close();
-			if(res1 != null)
-				res1.close();
+			if(resultMarks != null)
+				resultMarks.close();
+			if(pStmt != null)
+				pStmt.close();
+		}
+	}
+	
+	protected Group getGroupInfo(int groupNum) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		ResultSet res = null;
+		GroupBuilder groupBuilder = null;
+		
+		try {
+			if(!isGroupInDB(groupNum))
+				throw new IllegalArgumentException("Incorrect group number !!!");
+			groupBuilder = new GroupBuilder();
+			sqlRequest = "select * from studentgroup where groupNumber=?;";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, groupNum);
+			res = pStmt.executeQuery();
+			res.next();
+			groupBuilder.setGroupName(res.getString("groupName"));
+			groupBuilder.setGroupNumber(groupNum);
+			groupBuilder.setCuratorName(res.getString("curatorName"));
+			
+			return groupBuilder.build();
+		}
+		finally {
+			if(res != null)
+				res.close();
+			if(pStmt != null)
+				pStmt.close();
+		}
+	}
+	
+	public Group getGroup(int groupNum) throws SQLException {
+		Group group = null;
+		
+		try {
+			group = getGroupInfo(groupNum);
+			group.setStudents(getStudents(groupNum));
+			
+			return group;
+		}
+		finally {
 		}
 	}
 	
 	public boolean addStudent(int groupNum, Student student) throws SQLException {
 		ResultSet res = null;
-		int n = 0;
-		Integer[] marks = null;
-		String[] sbj = null;
-		String request = null;
+		String sqlRequest = null;
 		Statement stmt = null;
-		PreparedStatement prStmt = null;
+		PreparedStatement pStmt = null;
 		
 		try {
-			request = "select * from studentGroup where groupNumber=?;";
-			prStmt = con.prepareStatement(request);
-			prStmt.setInt(1, groupNum);
-			res = prStmt.executeQuery();
-			res.first();
-			if(!res.isFirst())
-				throw new IllegalArgumentException("This group doesn`t exists in data base. Maybe you have to call 'toSql' method firstly.");
+			if(!isGroupInDB(groupNum))
+				throw new IllegalArgumentException("This group doesn`t exists!");
+			/* adding marks */
+			addToMarksTable(Group.getSubjects(student), Group.getMarks(student));
 			
-			res.close();
-			request = "select * from students;";
-			stmt = con.createStatement();
-			res = stmt.executeQuery(request);
-			if(res.last())
-				n = res.getInt(1) + 1;
-			else
-				n = 1;
-			
-			prStmt.close();
-			/* adding to students table */		
-			request = "insert into students values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-			prStmt = con.prepareStatement(request);
-			prStmt.setInt(1, n);
-			prStmt.setString(2, student.getName());
-			prStmt.setString(3, student.getLastName());
-			prStmt.setDate(4, Date.valueOf(LocalDate.of(student.getBirthDay().getYear(),
+			/* adding Student`s info */
+			sqlRequest = "insert into students values(studentId, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setString(1, student.getFirstName());
+			pStmt.setString(2, student.getLastName());
+			pStmt.setDate(3, Date.valueOf(LocalDate.of(student.getBirthDay().getYear(),
 														student.getBirthDay().getMonth(),
 														student.getBirthDay().getDayOfMonth())));
-			prStmt.setString(5, student.getFaculty());
-			prStmt.setBoolean(6, student.isLeader());
-			prStmt.setInt(7, student.getMissings());
-			prStmt.setBoolean(8, student.isShip());
-			prStmt.setString(9, student.getEmail());
-			prStmt.setString(10, student.getPhoneNumber());
-			prStmt.setInt(11, groupNum);
-			prStmt.setInt(12, n);
-			prStmt.executeUpdate();
-			prStmt.close();
-			/* adding to marks table */
-			sbj = Group.getSubjects(student);
-			marks = Group.getMarks(student);
-			
-			for(int i = 0; i < sbj.length; ++ i) {
-				if(!IsSbjInDB(sbj[i]))
-					addToTableSubject("marks", sbj[i]);
-			}
-			
-			request = "insert into marks(markId, `";
-			for(int i = 0; i < sbj.length - 1; ++ i)
-				request += sbj[i] + "`, `";
-			request += sbj[sbj.length - 1] + "`) values(?, ";
-			
-			for(int i = 0; i < marks.length - 1; ++ i)
-				request += "?, ";
-			request += "?);";
-			
-			prStmt = con.prepareStatement(request);
-			prStmt.setInt(1, n);
-			for(int i = 0; i < marks.length; ++ i)
-				prStmt.setInt(i + 2, marks[i]);
-			prStmt.executeUpdate();
+			pStmt.setString(4, student.getFaculty());
+			pStmt.setBoolean(5, student.isLeader());
+			pStmt.setInt(6, student.getMissings());
+			pStmt.setBoolean(7, student.isShip());
+			pStmt.setString(8, student.getEmail());
+			pStmt.setString(9, student.getPhoneNumber());
+			pStmt.setInt(10, groupNum);
+			pStmt.executeUpdate();
 			
 			return true;
 		}
@@ -470,166 +420,331 @@ public class DataBase {
 				res.close();
 			if(stmt != null)
 				stmt.close();
-			if(prStmt != null)
-				prStmt.close();
+			if(pStmt != null)
+				pStmt.close();
 		}
 	}
 	
-	public boolean deleteStudent(int groupNum, int studentId) throws SQLException {
-		String request = null;
-		ResultSet res = null;
-		PreparedStatement prStmt = null;
-		Statement stmt = null; 
-		int n = 0;
+	protected boolean deleteFromStudentsTable(int studentId) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
 		
 		try {
-			stmt = con.createStatement();
-			request = "select * from students;";
-			res = stmt.executeQuery(request);
-			if(res.last()) {
-				n = res.getInt(1);
-			}
-			else {
-				throw new IllegalArgumentException("Table is empty!!!");
-			}
-			if(n < studentId || studentId <= 0) {
-				throw new IllegalArgumentException("Enter correct student ID!!!");
-			}
-			if(!isStudentGroupCorrect(groupNum, studentId)) {
-				throw new IllegalArgumentException("Can`t delete student from another group!!!");
-			}
-			request = "delete from students where studentId=?;";
-			prStmt = con.prepareStatement(request);
-			prStmt.setInt(1, studentId);
-			prStmt.executeUpdate();
-			prStmt.close();
-			request = "delete from marks where markId=?;";
-			prStmt = con.prepareStatement(request);
-			prStmt.setInt(1, studentId);
-			prStmt.executeUpdate();
-			if(n != studentId)
-				fieldsMoveUp(studentId, n);
-			res.close();
-			prStmt.close();
-			request = "select * from students where groupId=?;";
-			prStmt = con.prepareStatement(request);
-			prStmt.setInt(1, groupNum);
-			res = prStmt.executeQuery();
-			res.first();
-			if(!res.isFirst()) {
-				prStmt.close();
-				request = "delete from studentGroup where groupNumber=?;";
-				prStmt = con.prepareStatement(request);
-				prStmt.setInt(1, groupNum);
-				prStmt.executeUpdate();
-			}
+			sqlRequest = "delete from students where studentId=?;";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, studentId);
+			pStmt.executeUpdate();
+			
 			return true;
 		}
 		finally {
-			if(res != null)
-				res.close();
-			if(stmt != null)
-				stmt.close();
-			if(prStmt != null)
-				prStmt.close();
+			if(pStmt != null)
+				pStmt.close();
+		}
+	}
+
+	protected boolean deleteFromMarksTable(int markId) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		
+		try {
+			sqlRequest = "delete from marks where markId=?;";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, markId);
+			pStmt.executeUpdate();
+			
+			return true;
+		}
+		finally {
+			if(pStmt != null)
+				pStmt.close();
+		}
+	}
+	
+	public boolean deleteStudent(int studentId) throws SQLException {
+		try {
+			deleteFromStudentsTable(studentId);
+			deleteFromMarksTable(studentId);
+			
+			return true;
+		}
+		finally {
 		}
 	}
 	
 	public boolean deleteDB(String nameDB) throws SQLException {
-		PreparedStatement prStmt = null;
+		PreparedStatement pStmt = null;
 
 		try {
 			/*delete DB */
-			prStmt = con.prepareStatement(String.format("drop database %s", nameDB));
-			prStmt.executeUpdate();
+			pStmt = con.prepareStatement(String.format("drop database %s", nameDB));
+			pStmt.executeUpdate();
 			
 			return true;
 		}
 		finally {
-			if(prStmt != null)
-				prStmt.close();
+			if(pStmt != null)
+				pStmt.close();
 		}
 	}
 	
 	public boolean clearDB() throws SQLException {
 		Statement stmt = null;
-		PreparedStatement prStmt = null;
 		ResultSet tables = null;
 		
 		try {
 			stmt = con.createStatement();
 			tables = stmt.executeQuery("show tables;");
 			/* deleting all tables */
-			while(tables.next()) {
-				prStmt = con.prepareStatement(String.format("drop table %s", tables.getString(1)));
-				prStmt.executeUpdate();
-				prStmt.close();
-			}
+			stmt.executeUpdate("drop table students;");
+			stmt.executeUpdate("drop table studentGroup;");
+			stmt.executeUpdate("drop table marks;");
 			
 			return true;
 		}
 		finally {
 			if(tables != null)
 				tables.close();
-			if(prStmt != null)
-				prStmt.close();
+			if(stmt != null)
+				stmt.close();
 		}
 	}
 	
-	public boolean newMark(int groupNum, int studentId, String sbj, int mark) throws SQLException {
-		String request = null;
-		PreparedStatement prStmt = null;
+	public boolean updateMark(int studentId, String sbj, int mark) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
 		
 		try {
-			if(!isStudentIdCorrect(studentId))
-				throw new IllegalArgumentException("This stedentId does not exists !");
 			if(!IsSbjInDB(sbj))
 				throw new IllegalArgumentException("This student has not current course !!!");
-			if(!isStudentGroupCorrect(groupNum, studentId))
-				throw new IllegalArgumentException("This student does not belong this group !!!");
 			
-			request = String.format("update marks set %s=? where markId=?;", '`' + sbj + '`');
-			prStmt = con.prepareStatement(request);
-			prStmt.setInt(1, mark);
-			prStmt.setInt(2, studentId);
-			prStmt.executeUpdate();
+			sqlRequest = String.format("update marks set %s=? where markId=?;", '`' + sbj + '`');
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, mark);
+			pStmt.setInt(2, studentId);
+			pStmt.executeUpdate();
 			
 			return true;
 		}
 		finally {
-			if(prStmt != null)
-				prStmt.close();
+			if(pStmt != null)
+				pStmt.close();
 		}
 	}
 	
-	public boolean newMarks(int groupNum, int studentId, String[] sbj, Integer[] marks) throws SQLException {
-		String request = null;
-		PreparedStatement prStmt = null;
+	public boolean updateMarks(int studentId, List<String> sbjs, List<Integer> marks) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		List<String> currentSubjects = null;
 		
 		try {
-			if(!isStudentIdCorrect(studentId))
-				throw new IllegalArgumentException("This stedentId does not exists !");
-			if(!isStudentGroupCorrect(groupNum, studentId))
-				throw new IllegalArgumentException("This student does not belong this group !!!");
-			request = "update marks set `";
-			for(int i = 0; i < sbj.length - 1; ++ i) {
-				if(!IsSbjInDB(sbj[i]))
-					throw new IllegalArgumentException("One or more subjects does not exists in database !!!");
-				request += sbj[i] + "`=?, `";
+			currentSubjects = getStudentIdSubjects(studentId);
+			for(int i = 0; i < sbjs.size(); ++ i) {
+				if(!currentSubjects.contains(sbjs.get(i))) {
+					sbjs.remove(i);
+					marks.remove(i);
+					-- i;
+				}
 			}
-			request += sbj[sbj.length - 1] + "`=? where markId=?;";
-			prStmt = con.prepareStatement(request);
-			for(int i = 0; i < marks.length; ++ i)
-					prStmt.setInt(i + 1, marks[i]);
+			if(sbjs.size() == 0)
+				throw new IllegalArgumentException("Student has not this course(s) !");
+			for(int i = 0; i < marks.size(); ++ i)
+				if(marks.get(i) <= 0)
+					throw new IllegalArgumentException("Can`t add negative or 0 mark!");
 			
-			prStmt.setInt(sbj.length + 1, studentId);
-			prStmt.executeUpdate();
+			sqlRequest = "update marks set `";
+			for(int i = 0; i < sbjs.size() - 1; ++ i) {
+				sqlRequest += sbjs.get(i) + "`=?, `";
+			}
+			sqlRequest += sbjs.get(sbjs.size() - 1) + "`=? where markId=?;";
+			pStmt = con.prepareStatement(sqlRequest);
+			for(int i = 0; i < marks.size(); ++ i)
+					pStmt.setInt(i + 1, marks.get(i));
+			
+			pStmt.setInt(sbjs.size() + 1, studentId);
+			pStmt.executeUpdate();
 			
 			return true;
 		}
 		finally {
-			if(prStmt != null)
-				prStmt.close();
+			if(pStmt != null)
+				pStmt.close();
 		}
+	}
+	
+	protected List<Integer> getAllGroupNumbers() throws SQLException {
+		String sqlRequest = null;
+		ResultSet res = null;
+		Statement stmt = null;
+		List<Integer> groupNumberList = null;
+		
+		try {
+			stmt = con.createStatement();
+			groupNumberList = new ArrayList<Integer>();
+			sqlRequest = "select groupNumber from studentGroup;";
+			res = stmt.executeQuery(sqlRequest);
+			while(res.next())
+				groupNumberList.add(res.getInt("groupNumber"));
+		}
+		finally {
+			if(res != null)
+				res.close();
+			if(stmt != null)
+				stmt.close();
+		}
+		return groupNumberList;
+	}
+	
+	public List<Group> getAllGroups() throws SQLException {
+		List<Group> groupList = null;
+		List<Integer> groupNumberList = null;
+		
+		try {
+			groupList = new ArrayList<Group>();
+			groupNumberList = getAllGroupNumbers();
+			
+			for(int i = 0; i < groupNumberList.size(); ++ i) {
+				groupList.add(getGroup(groupNumberList.get(i)));
+			}
+		}
+		finally {
+		}
+		
+		return groupList;
+	}
+	
+	protected List<Integer> getStudentsIdToDelete(int groupNumber) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		List<Integer> studentIDs = null;
+		ResultSet res = null;
+		
+		try {
+			studentIDs = new ArrayList<Integer>();
+			sqlRequest = "select studentId from students where groupId=?";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, groupNumber);
+			res = pStmt.executeQuery();
+			
+			while(res.next()) {
+				studentIDs.add(res.getInt("studentId"));
+			}
+		}
+		finally {
+			if(res != null)
+				res.close();
+			if(pStmt != null)
+				pStmt.close();
+		}
+		return studentIDs;
+	}
+	
+	protected boolean deleteGroupFromStudentsTable(int groupNumber) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+			
+		try {
+			sqlRequest = "delete from students where groupId=?";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, groupNumber);
+			pStmt.executeUpdate();
+		}
+		finally {
+			if(pStmt != null)
+				pStmt.close();
+		}
+		return true;
+	}
+	
+	protected boolean deleteGroupFromMarksTable(List<Integer> studentIDs) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+			
+		try {
+			for(int i = 0; i < studentIDs.size(); ++ i) {
+				sqlRequest = "delete from marks where markId=?";
+				pStmt = con.prepareStatement(sqlRequest);
+				pStmt.setInt(1, studentIDs.get(i));
+				pStmt.executeUpdate();
+			}
+		}
+		finally {
+			if(pStmt != null)
+				pStmt.close();
+		}
+		return true;
+	}
+	
+	public boolean deleteGroup(int groupNumber) throws SQLException {
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		List<Integer> studentIDs = null;
+		
+		try {
+			studentIDs = getStudentsIdToDelete(groupNumber);
+			deleteGroupFromStudentsTable(groupNumber);
+			deleteGroupFromMarksTable(studentIDs);
+			sqlRequest = "delete from studentGroup where groupNumber=?";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, groupNumber);
+			pStmt.executeUpdate();
+		}
+		finally {
+			if(pStmt != null)
+				pStmt.close();
+		}
+		
+		return true;
+	}
+	
+	public int getStudentIdByPhoneNumber(String phoneNumber) throws SQLException{
+		int studentId = 0;
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		ResultSet res = null;
+		
+		try {
+			sqlRequest = "select studentId from students where phoneNumber=?";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setString(1, phoneNumber);
+			res = pStmt.executeQuery();
+			res.next();
+			studentId = res.getInt("studentId");
+		}
+		finally {
+			if(res != null)
+				res.close();
+			if(pStmt != null)
+				pStmt.close();
+		}
+		return studentId;
+	}
+	
+	public List<Integer> getStudentMarks(int markId) throws SQLException {
+		List<Integer> marksList = null;
+		List<String> subjects = null;
+		String sqlRequest = null;
+		PreparedStatement pStmt = null;
+		ResultSet res = null;
+		
+		try {
+			marksList = new ArrayList<Integer>();
+			subjects = getColumns("marks");
+			sqlRequest = "select * from marks where markId=?";
+			pStmt = con.prepareStatement(sqlRequest);
+			pStmt.setInt(1, markId);
+			res = pStmt.executeQuery();
+			res.next();
+			for(int i = 0; i < subjects.size(); ++ i)
+				marksList.add(res.getInt(subjects.get(i)));
+			
+		}
+		finally {
+			if(res != null)
+				res.close();
+			if(pStmt != null)
+				pStmt.close();
+		}
+		return marksList;
 	}
 }

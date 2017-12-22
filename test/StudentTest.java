@@ -12,10 +12,11 @@ import builders.StudentBuilder;
 
 public class StudentTest {
   @Test(dataProvider = "oldProvider")
-  public void oldTest(String n, String l, LocalDate b, String p, String e, String f, boolean st, String[] sbj, Integer[] bl, int y) {
-	  assertEquals(new StudentBuilder(n).setLastName(l).setBirthDay(b)
-			  							     .setPhoneNumber(p).setEmail(e)
-			  							     .setFaculty(f).setMissings(10).setLeader(st).setEdu(sbj,  bl).build().years(), y);
+  public void oldTest(String firstName, String lastName, LocalDate birthDay, String phone, String email,
+		  				String faculty, boolean leader, String[] sbj, Integer[] marks, int expAge) {
+	  assertEquals(new StudentBuilder(firstName).setLastName(lastName).setBirthDay(birthDay)
+			  							     .setPhoneNumber(phone).setEmail(email)
+			  							     .setFaculty(faculty).setLeader(leader).setEdu(sbj,  marks).build().getAge(), expAge);
   }
   @DataProvider
   public Object[][] oldProvider() {

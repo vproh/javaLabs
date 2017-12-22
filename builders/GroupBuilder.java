@@ -13,19 +13,26 @@ import models.Student;
 
 @XmlRootElement (name = "Group")
 public class GroupBuilder {
-	String curatorName, groupName;
-	List<Student> students = new ArrayList<Student>();
-	int groupNumber;
+	private static final String NAME_REGEX = "^[A-Z][a-z]{1,14}([- ][a-zA-Z]{1,15}){0,3}$";
+	private static final int MIN_GROUP_NUMBER = 100;
+	private static final int MAX_GROUP_NUMBER = 699;
+	
+	private String curatorName;
+	private String groupName;
+	private List<Student> students = new ArrayList<Student>();
+	private int groupNumber;
 	
 	public GroupBuilder() {
+		/*
 		curatorName = null;
 		groupName = null;
 		students = null;
 		groupNumber = 0;
+		*/
 	}
 	
-	public GroupBuilder(String grName) {
-		this.groupName = grName;
+	public GroupBuilder(String groupName) {
+		this.groupName = groupName;
 	}
 	
 	@XmlElement(name = "groupName")
@@ -44,8 +51,8 @@ public class GroupBuilder {
 		return students;
 	}
 	
-	public GroupBuilder setStudents(List<Student> s) {
-		this.students = s;
+	public GroupBuilder setStudents(List<Student> students) {
+		this.students = students;
 		
 		return this;
 	}
@@ -55,8 +62,8 @@ public class GroupBuilder {
 		return curatorName;
 	}
 	
-	public GroupBuilder setCuratorName(String curName) {
-		this.curatorName = curName;
+	public GroupBuilder setCuratorName(String curatorName) {
+		this.curatorName = curatorName;
 		
 		return this;			
 	}
@@ -66,33 +73,39 @@ public class GroupBuilder {
 		return groupNumber;
 	}
 	
-	public GroupBuilder setGroupNumber(int grNum) {
-		this.groupNumber = grNum;
+	public GroupBuilder setGroupNumber(int groupNum) {
+		this.groupNumber = groupNum;
 		
 		return this;
 	}
 	
 	public Group build() {
-		Group ob = new Group();
-		Pattern namePattern = Pattern.compile("^[A-Z][a-z]{1,14}([- ][a-zA-Z]{1,15}){0,3}$");
+		StringBuilder errorMessage = new StringBuilder("");
+		
+		Group group = new Group();
+		Pattern namePattern = Pattern.compile(NAME_REGEX);
 		
 		Matcher curNameMatcher = namePattern.matcher(this.curatorName);
 		Matcher grNameMatcher = namePattern.matcher(this.groupName);
 	
 		if(!(curNameMatcher.matches()))
-			throw new IllegalArgumentException("Enter correct curator`s last name! (Contains latin letters up to 15!)");
+			errorMessage.append("Enter correct curator`s last name! (Contains latin letters up to 15!)");
 		if(!(grNameMatcher.matches()))
-			throw new IllegalArgumentException("Enter correct group`s name! (Contains latin letters up to 15!)");
-		if(this.groupNumber < 100 || this.groupNumber > 999)
-			throw new IllegalArgumentException("Enter correct group`s number! (Numbers from 100 up to 999!)");
+			errorMessage.append("Enter correct group`s name! (Contains latin letters up to 15!)");
+		if(this.groupNumber < MIN_GROUP_NUMBER || this.groupNumber > MAX_GROUP_NUMBER)
+			errorMessage.append("Enter correct group`s number! (Numbers from " + MIN_GROUP_NUMBER +
+																" up to " + MAX_GROUP_NUMBER + "!)");
 		
-		ob.setGroupName(this.groupName);
-		ob.setCuratorName(this.curatorName);
-		ob.setGroupNumber(this.groupNumber);
-		ob.setStudents(this.students);
-		ob.countShipStudents();
-		ob.averageBal();
+		if(errorMessage != null && !(errorMessage.toString().equals(""))) {
+			throw new IllegalArgumentException(errorMessage.toString());
+		}
 		
-		return ob;
+		group.setGroupName(this.groupName);
+		group.setCuratorName(this.curatorName);
+		group.setGroupNumber(this.groupNumber);
+		group.setStudents(this.students);
+		group.averageMark();
+		
+		return group;
 	}
 }

@@ -42,7 +42,7 @@ public class GroupTest {
 								.setPhoneNumber("0975463187").setEmail("Proh@gmail.com")
 								.setFaculty("Math-fac").setShip(true).setEdu(groupSbj1,  mark1).build();
 		student2 = new StudentBuilder("Rostik").setLastName("Rgfdgb").setBirthDay(LocalDate.of(1997, Month.JULY, 22))
-								.setPhoneNumber("0975497111").setLeader(true).setEmail("Khlan@gmail.com")
+	   							.setPhoneNumber("0975497111").setLeader(true).setEmail("Khlan@gmail.com")
 								.setFaculty("Math-fac").setMissings(11).setShip(true).setEdu(groupSbj1, mark2).build();
 		student3 = new StudentBuilder("Danka").setLastName("Zsdfa").setBirthDay(LocalDate.of(1999, Month.AUGUST, 31))
 								.setPhoneNumber("0971131548").setEmail("Danka@gmail.com")
@@ -89,7 +89,7 @@ public class GroupTest {
 	
 	@Test(dataProvider = "sortByNProvider")
 	public void sortByNTest(Group group, List<Student> exp) {
-		group.sortByN();
+		group.sortByMissings();
 		assertTrue(equalsStudentsCollection(group.getStudents(), exp));
 	}
 	
@@ -143,7 +143,7 @@ public class GroupTest {
 	
 	@Test
 	public void countShipStudentsTest() {
-		assertTrue(group1.getpayQuantity() == 0 && group1.getshipQuantity() == 4);
+		assertTrue(group1.getPayQuantity() == 0 && group1.getShipQuantity() == 4);
 	}
 	
 	@Test(dataProvider = "studentShipProvider")
@@ -166,7 +166,7 @@ public class GroupTest {
 	
 	@Test
 	public void maxNTest() {
-		assertTrue(student2.equals(group1.maxN()));
+		assertTrue(student2.equals(group1.maxMissings()));
 	}
 	
 	@Test(dataProvider = "averageMarkProvider")
