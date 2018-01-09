@@ -25,12 +25,10 @@ public class DataBase {
 			DataBase.url = url;
 			DataBase.user = user;
 			con = DriverManager.getConnection(url, user, password);
-			/*
 			clearDB();
 			createStudentGroupTable();
 			createStudentsTable();
 			createMarksTable();
-			*/
 		}
 		catch(ClassNotFoundException | SQLException e) {
 			e.printStackTrace();

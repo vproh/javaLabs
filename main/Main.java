@@ -61,14 +61,14 @@ public class Main {
 			student2 = new StudentBuilder("Rostik").setLastName("Rgfdgb").setBirthDay(LocalDate.of(1997, Month.JULY, 22))
 									.setPhoneNumber("0975497111").setLeader(true).setEmail("Khlan@gmail.com")
 									.setFaculty("Math-fac").setMissings(11).setShip(false).setEdu(groupSbj1, mark2).build();
-			student3 = new StudentBuilder("Danka").setLastName("Zsdfa").setBirthDay(LocalDate.of(1999, Month.AUGUST, 31))
-									.setPhoneNumber("0971131548").setEmail("Danka@gmail.com")
+			student3 = new StudentBuilder("Katia").setLastName("Virstiuk").setBirthDay(LocalDate.of(1998, Month.DECEMBER, 07))
+									.setPhoneNumber("0982484984").setEmail("Katiavir@gmail.com")
 									.setFaculty("Math-fac").setMissings(7).setShip(true).setEdu(groupSbj1, mark3).build();
 			student4 = new StudentBuilder("Artem").setLastName("Omsk").setBirthDay(LocalDate.of(1998, Month.MARCH, 3))
 									.setPhoneNumber("0978721375").setMissings(3).setEmail("Katia@gmail.com")
 									.setFaculty("Math-fac").setShip(true).setEdu(groupSbj1, mark4).build();
 			student5 = new StudentBuilder("Igor").setLastName("Ivanitska").setBirthDay(LocalDate.of(1998, Month.AUGUST, 12))
-									.setPhoneNumber("0971131548").setEmail("Daa@gmail.com")
+									.setPhoneNumber("0961853146").setEmail("Daa@gmail.com")
 									.setFaculty("Math-fac").setMissings(7).setShip(true).setEdu(groupSbj2, mark5).build();
 			/*
 			student6 = new StudentBuilder("Olga").setLastName("Zabur").setBirthDay(LocalDate.of(1996, Month.MARCH, 30))
@@ -86,10 +86,8 @@ public class Main {
 			group1 = new GroupBuilder("Group one").setGroupNumber(101).setCuratorName("Curator one").setStudents(studArr).build();
 			Group group2 = new GroupBuilder("Group two").setGroupNumber(102).setCuratorName("Curator two").setStudents(studArr2).build();
 			DataBase db = new DataBase();
-			List<Integer> list = db.getStudentMarks(60);
-			for(int i = 0; i < list.size(); ++ i)
-				System.out.println("Marks = " + list.get(i));
-			//db.addGroup(group2);
+			db.addGroup(group1);
+			db.addGroup(group2);
 			//System.out.println(db.deleteGroup(102));
 			//Serialization<Group> jsonSerialize = new JsonSerializator<Group>(Group.class);
 			//Serialization<Group> xmlSerialize = new XmlSerializator<Group>(Group.class);
